@@ -635,7 +635,7 @@ $total_soal = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as total F
                 </div>
                 <div class="admin-info">
                     <h5><?php echo $_SESSION['admin_nama'] ?? 'Administrator'; ?></h5>
-                    <p>Admin PMB UTN</p>
+                    <p>Admin PMB Arten Campus</p>
                 </div>
             </div>
         </div>

@@ -523,23 +523,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         </form>
 
         <!-- Demo Login Section -->
-        <div class="demo-section">
-            <p class="demo-title">Login cepat untuk testing:</p>
-            <div class="demo-buttons">
-                <button type="button" 
-                        class="btn demo-btn demo-btn-primary demo-login"
-                        data-email="demo@artencampus.ac.id"
-                        data-password="demo123">
-                    <i class="fas fa-user me-2"></i>Akun Demo
-                </button>
-                <button type="button" 
-                        class="btn demo-btn demo-btn-warning demo-login"
-                        data-email="test@artencampus.ac.id"
-                        data-password="test123">
-                    <i class="fas fa-vial me-2"></i>Akun Testing
-                </button>
-            </div>
-        </div>
+        
 
         <!-- Back to Home -->
         <div class="back-home">

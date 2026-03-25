@@ -306,7 +306,7 @@ while($row = mysqli_fetch_assoc($jurusan_result)) {
                 </div>
                 <div class="admin-info">
                     <h5><?php echo $_SESSION['admin_nama'] ?? 'Administrator'; ?></h5>
-                    <p>Admin PMB UTN</p>
+                    <p>Admin PMB Arten Campus</p>
                 </div>
             </div>
         </div>
@@ -356,7 +356,7 @@ while($row = mysqli_fetch_assoc($jurusan_result)) {
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <h1 class="h3 mb-0">Dashboard Admin</h1>
-                        <p class="text-muted mb-0">Portal Penerimaan Mahasiswa Baru UTN</p>
+                        <p class="text-muted mb-0">Portal Penerimaan Mahasiswa Baru</p>
                     </div>
                     <div class="d-flex align-items-center gap-3">
                         <button class="btn btn-link text-dark p-0" title="Notifikasi">

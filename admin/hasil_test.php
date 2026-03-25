@@ -85,7 +85,7 @@ $nilai_stats = mysqli_fetch_assoc(mysqli_query($conn,
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hasil Test - Admin PMB UTN</title>
+    <title>Hasil Test - Admin PMB </title>
     
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -515,7 +515,7 @@ $nilai_stats = mysqli_fetch_assoc(mysqli_query($conn,
                 </div>
                 <div class="admin-info">
                     <h5><?php echo $_SESSION['admin_nama'] ?? 'Administrator'; ?></h5>
-                    <p>Admin PMB UTN</p>
+                    <p>Admin PMB Arten Campus</p>
                 </div>
             </div>
         </div>
@@ -811,15 +811,17 @@ $nilai_stats = mysqli_fetch_assoc(mysqli_query($conn,
                         <div class="mt-4">
                             <h6 class="fw-medium mb-2">Ekspor Data</h6>
                             <div class="export-buttons">
-                                <button class="btn btn-sm btn-outline-success me-2" onclick="exportToExcel()">
-                                    <i class="fas fa-file-excel me-1"></i>Excel
-                                </button>
-                                <button class="btn btn-sm btn-outline-danger me-2" onclick="exportToPDF()">
-                                    <i class="fas fa-file-pdf me-1"></i>PDF
-                                </button>
-                                <button class="btn btn-sm btn-outline-primary" onclick="printTable()">
-                                    <i class="fas fa-print me-1"></i>Print
-                                </button>
+                                <a href="export_excel_hasil.php" class="btn btn-sm btn-outline-success me-2">
+    <i class="fas fa-file-excel me-1"></i>Excel
+</a>
+
+<button class="btn btn-sm btn-outline-danger me-2" onclick="exportToPDF()">
+    <i class="fas fa-file-pdf me-1"></i>PDF
+</button>
+
+<button class="btn btn-sm btn-outline-primary" onclick="printTable()">
+    <i class="fas fa-print me-1"></i>Print
+</button>
                             </div>
                         </div>
                     </div>
@@ -1114,12 +1116,17 @@ $nilai_stats = mysqli_fetch_assoc(mysqli_query($conn,
         }
         
         function exportToPDF() {
-            alert('Export ke PDF (implementasi menggunakan TCPDF atau DomPDF)');
-        }
+    window.print();
+}
         
-        function printTable() {
-            window.print();
-        }
+       function printTable() {
+    var printContents = document.getElementById("resultsTable").outerHTML;
+    var originalContents = document.body.innerHTML;
+
+    document.body.innerHTML = printContents;
+    window.print();
+    document.body.innerHTML = originalContents;
+}
     </script>
 </body>
 </html>

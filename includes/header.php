@@ -35,6 +35,7 @@
             color: #333;
         }
 
+        /* ================= NAVBAR ================= */
         .navbar-brand {
             font-family: 'Montserrat', sans-serif;
             font-weight: 900;
@@ -58,6 +59,7 @@
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
             padding: 1rem 0;
             transition: all 0.3s ease;
+            z-index: 9999; /* FIX supaya tidak nutup tombol */
         }
 
         .navbar.scrolled {
@@ -80,7 +82,7 @@
             transform: translateY(-2px);
         }
 
-        /* Button Styles */
+        /* ================= BUTTON ================= */
         .btn-arten {
             background: var(--arten-gradient);
             color: white;
@@ -115,61 +117,83 @@
             box-shadow: 0 8px 25px rgba(231, 76, 60, 0.3);
             color: white;
         }
+
+        /* ================= FIX TOMBOL TIDAK BISA DIKLIK ================= */
+
+        /* supaya layer card tidak menutupi tombol */
+        .feature-card::before {
+            pointer-events: none;
+        }
+
+        /* supaya tombol selalu di atas */
+        .feature-card .card-body a {
+            position: relative;
+            z-index: 10;
+        }
+
+        /* supaya section pertama tidak ketutup navbar */
+        .hero-section {
+            padding-top: 160px;
+        }
     </style>
 </head>
-<body>
-    <?php if (!isset($hideNavbar) || $hideNavbar !== true): ?>
-    <nav class="navbar navbar-expand-lg navbar-light fixed-top">
-        <div class="container">
-            <a class="navbar-brand" href="../index.php">
-                <i class="fas fa-graduation-cap"></i>Arten Campus
-            </a>
-            
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto align-items-center">
-                    <li class="nav-item">
-                        <a class="nav-link" href="../index.php#home">
-                            <i class="fas fa-home me-1"></i>Home
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="../index.php#pendaftaran">
-                            <i class="fas fa-user-plus me-1"></i>Pendaftaran
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="../index.php#informasi">
-                            <i class="fas fa-info-circle me-1"></i>Informasi
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="../index.php#kontak">
-                            <i class="fas fa-phone me-1"></i>Kontak
-                        </a>
-                    </li>
-                    <li class="nav-item ms-3">
-                        <a href="../user/registrasi.php" class="btn btn-arten btn-sm">
-                            <i class="fas fa-rocket me-1"></i>Daftar Sekarang
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
-    <?php endif; ?>
 
-    <script>
-        // Navbar scroll effect
-        window.addEventListener('scroll', function() {
-            const navbar = document.querySelector('.navbar');
+<body>
+
+<?php if (!isset($hideNavbar) || $hideNavbar !== true): ?>
+<nav class="navbar navbar-expand-lg navbar-light fixed-top">
+    <div class="container">
+        <a class="navbar-brand" href="../index.php">
+            <i class="fas fa-graduation-cap"></i>Arten Campus
+        </a>
+        
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto align-items-center">
+                <li class="nav-item">
+                    <a class="nav-link" href="../index.php#home">
+                        <i class="fas fa-home me-1"></i>Home
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="../index.php#pendaftaran">
+                        <i class="fas fa-user-plus me-1"></i>Pendaftaran
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="../index.php#informasi">
+                        <i class="fas fa-info-circle me-1"></i>Informasi
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="../index.php#kontak">
+                        <i class="fas fa-phone me-1"></i>Kontak
+                    </a>
+                </li>
+                <li class="nav-item ms-3">
+                    <a href="../user/registrasi.php" class="btn btn-arten btn-sm">
+                        <i class="fas fa-rocket me-1"></i>Daftar Sekarang
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+<?php endif; ?>
+
+<script>
+    // efek navbar saat scroll
+    window.addEventListener('scroll', function() {
+        const navbar = document.querySelector('.navbar');
+        if (navbar) {
             if (window.scrollY > 50) {
                 navbar.classList.add('scrolled');
             } else {
                 navbar.classList.remove('scrolled');
             }
-        });
-    </script>
+        }
+    });
+</script>

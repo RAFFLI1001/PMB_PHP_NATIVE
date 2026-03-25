@@ -609,7 +609,7 @@ $total_belum_daftar = $total_lulus - $total_daftar_ulang;
                 </div>
                 <div class="admin-info">
                     <h5><?php echo $_SESSION['admin_nama'] ?? 'Administrator'; ?></h5>
-                    <p>Admin PMB UTN</p>
+                    <p>Admin PMB Arten Campus</p>
                 </div>
             </div>
         </div>
@@ -903,143 +903,104 @@ $total_belum_daftar = $total_lulus - $total_daftar_ulang;
                         
                         <?php if(mysqli_num_rows($result) > 0): ?>
                             <div class="table-responsive">
-                                <table class="data-table" id="daftarUlangTable">
-                                    <thead>
-                                        <tr>
-                                            <th width="120">NIM</th>
-                                            <th>Nama</th>
-                                            <th width="100">Jurusan</th>
-                                            <th width="120">Status</th>
-                                            <th width="80">Bukti</th>
-                                            <th width="60">Aksi</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <?php while($row = mysqli_fetch_assoc($result)): 
-                                            $status_class = $row['status_pembayaran'] == 'lunas' ? 'success' : 'warning';
-                                            $status_text = $row['status_pembayaran'] == 'lunas' ? 'LUNAS' : 'BELUM';
-                                        ?>
-                                        <tr>
-                                            <td>
-                                                <span class="nim-badge"><?php echo $row['no_induk_mahasiswa']; ?></span>
-                                            </td>
-                                            <td>
-                                                <div class="fw-medium"><?php echo htmlspecialchars($row['nama_lengkap']); ?></div>
-                                                <small class="text-muted">
-                                                    <?php echo $row['no_test']; ?>
-                                                </small>
-                                            </td>
-                                            <td>
-                                                <span class="badge bg-light text-dark">
-                                                    <?php echo htmlspecialchars($row['nama_jurusan']); ?>
-                                                </span>
-                                            </td>
-                                            <td>
-                                                <form method="POST" action="" class="status-form">
-                                                    <input type="hidden" name="id_daftar_ulang" value="<?php echo $row['id_daftar_ulang']; ?>">
-                                                    <select name="status_pembayaran" class="form-select form-select-sm status-select" 
-                                                            data-id="<?php echo $row['id_daftar_ulang']; ?>">
-                                                        <option value="belum" <?php echo $row['status_pembayaran'] == 'belum' ? 'selected' : ''; ?>>Belum</option>
-                                                        <option value="lunas" <?php echo $row['status_pembayaran'] == 'lunas' ? 'selected' : ''; ?>>Lunas</option>
-                                                    </select>
-                                                    <button type="submit" name="update_status" class="d-none">Update</button>
-                                                </form>
-                                            </td>
-                                            <td>
-                                                <?php if($row['bukti_pembayaran']): ?>
-                                                    <button class="btn-action btn btn-sm btn-outline-info" 
-                                                            onclick="showBukti('<?php echo $row['bukti_pembayaran']; ?>', '<?php echo htmlspecialchars($row['nama_lengkap']); ?>')"
-                                                            title="Lihat Bukti">
-                                                        <i class="fas fa-eye"></i>
-                                                    </button>
-                                                <?php else: ?>
-                                                    <span class="badge bg-secondary">-</span>
-                                                <?php endif; ?>
-                                            </td>
-                                            <td>
-                                                <button class="btn-action btn btn-sm btn-outline-primary" 
-                                                        data-bs-toggle="modal" 
-                                                        data-bs-target="#detailModal<?php echo $row['id_daftar_ulang']; ?>"
-                                                        title="Detail">
-                                                    <i class="fas fa-info-circle"></i>
-                                                </button>
-                                            </td>
-                                        </tr>
-                                        
-                                        <!-- Detail Modal -->
-                                        <div class="modal fade" id="detailModal<?php echo $row['id_daftar_ulang']; ?>" tabindex="-1">
-                                            <div class="modal-dialog modal-lg">
-                                                <div class="modal-content">
-                                                    <div class="modal-header">
-                                                        <h5 class="modal-title">Detail Daftar Ulang</h5>
-                                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                                    </div>
-                                                    <div class="modal-body">
-                                                        <div class="row">
-                                                            <div class="col-md-6 mb-3">
-                                                                <div class="card h-100">
-                                                                    <div class="card-body">
-                                                                        <h6 class="card-title text-primary">Data Mahasiswa</h6>
-                                                                        <table class="table table-sm">
-                                                                            <tr><td><strong>NIM</strong></td><td><?php echo $row['no_induk_mahasiswa']; ?></td></tr>
-                                                                            <tr><td><strong>Nama</strong></td><td><?php echo htmlspecialchars($row['nama_lengkap']); ?></td></tr>
-                                                                            <tr><td><strong>No. Test</strong></td><td><?php echo $row['no_test']; ?></td></tr>
-                                                                            <tr><td><strong>Jurusan</strong></td><td><?php echo htmlspecialchars($row['nama_jurusan']); ?></td></tr>
-                                                                            <tr><td><strong>Nilai Test</strong></td><td><?php echo number_format($row['nilai_test'], 2); ?></td></tr>
-                                                                        </table>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                            <div class="col-md-6 mb-3">
-                                                                <div class="card h-100">
-                                                                    <div class="card-body">
-                                                                        <h6 class="card-title text-primary">Data Daftar Ulang</h6>
-                                                                        <table class="table table-sm">
-                                                                            <tr><td><strong>Tanggal Daftar Ulang</strong></td><td><?php echo date('d F Y', strtotime($row['tanggal_daftar_ulang'])); ?></td></tr>
-                                                                            <tr><td><strong>Status Pembayaran</strong></td>
-                                                                                <td>
-                                                                                    <span class="badge bg-<?php echo $row['status_pembayaran'] == 'lunas' ? 'success' : 'warning'; ?>">
-                                                                                        <?php echo ucfirst($row['status_pembayaran']); ?>
-                                                                                    </span>
-                                                                                </td>
-                                                                            </tr>
-                                                                            <tr><td><strong>Tanggal Test</strong></td><td><?php echo date('d F Y', strtotime($row['tanggal_daftar'])); ?></td></tr>
-                                                                            <tr><td><strong>Asal Sekolah</strong></td><td><?php echo htmlspecialchars($row['asal_sekolah']); ?></td></tr>
-                                                                            <tr><td><strong>Email</strong></td><td><?php echo htmlspecialchars($row['email']); ?></td></tr>
-                                                                        </table>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        
-                                                        <?php if($row['bukti_pembayaran']): ?>
-                                                        <div class="card mt-3">
-                                                            <div class="card-body">
-                                                                <h6 class="card-title text-primary">Bukti Pembayaran</h6>
-                                                                <div class="bukti-preview mx-auto">
-                                                                    <img src="../assets/uploads/bukti/<?php echo $row['bukti_pembayaran']; ?>" 
-                                                                         alt="Bukti Pembayaran">
-                                                                </div>
-                                                                <div class="text-center mt-3">
-                                                                    <a href="../assets/uploads/bukti/<?php echo $row['bukti_pembayaran']; ?>" 
-                                                                       target="_blank" class="btn btn-sm btn-outline-primary">
-                                                                        <i class="fas fa-external-link-alt me-1"></i>Buka di Tab Baru
-                                                                    </a>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        <?php endif; ?>
-                                                    </div>
-                                                    <div class="modal-footer">
-                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <?php endwhile; ?>
-                                    </tbody>
-                                </table>
-                            </div>
+<table class="table align-middle table-hover bg-white rounded overflow-hidden" id="daftarUlangTable">
+
+    <thead class="table-light">
+        <tr>
+            <th class="ps-4">NIM</th>
+            <th>Mahasiswa</th>
+            <th>Jurusan</th>
+            <th>Status Pembayaran</th>
+            <th class="text-center">Bukti</th>
+            <th class="text-center pe-4">Aksi</th>
+        </tr>
+    </thead>
+
+    <tbody>
+
+    <?php while($row = mysqli_fetch_assoc($result)): ?>
+
+        <tr>
+            <!-- NIM -->
+            <td class="ps-4">
+                <div class="fw-bold text-primary">
+                    <?php echo $row['no_induk_mahasiswa']; ?>
+                </div>
+                <small class="text-muted">No Test: <?php echo $row['no_test']; ?></small>
+            </td>
+
+            <!-- DATA MAHASISWA -->
+            <td>
+                <div class="fw-semibold">
+                    <?php echo htmlspecialchars($row['nama_lengkap']); ?>
+                </div>
+
+                <small class="text-muted d-block">
+                    <?php echo $row['email']; ?>
+                </small>
+
+                <small class="text-muted d-block">
+                    <?php echo $row['asal_sekolah']; ?>
+                </small>
+            </td>
+
+            <!-- JURUSAN -->
+            <td>
+                <span class="badge bg-light text-dark px-3 py-2">
+                    <?php echo $row['nama_jurusan']; ?>
+                </span>
+            </td>
+
+            <!-- STATUS PEMBAYARAN -->
+            <td>
+                <form method="POST" action="">
+                    <input type="hidden" name="id_daftar_ulang" value="<?php echo $row['id_daftar_ulang']; ?>">
+
+                    <select name="status_pembayaran" 
+                            class="form-select form-select-sm"
+                            onchange="this.form.submit()">
+
+                        <option value="belum" <?php if($row['status_pembayaran']=='belum') echo 'selected'; ?>>
+                            Belum Bayar
+                        </option>
+
+                        <option value="lunas" <?php if($row['status_pembayaran']=='lunas') echo 'selected'; ?>>
+                            Sudah Lunas
+                        </option>
+
+                    </select>
+
+                    <input type="hidden" name="update_status" value="1">
+                </form>
+            </td>
+
+            <!-- BUKTI -->
+            <td class="text-center">
+                <?php if($row['bukti_pembayaran']): ?>
+                    <button class="btn btn-sm btn-outline-info"
+                            onclick="showBukti('<?php echo $row['bukti_pembayaran']; ?>','<?php echo $row['nama_lengkap']; ?>')">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                <?php else: ?>
+                    <span class="text-muted">Belum ada</span>
+                <?php endif; ?>
+            </td>
+
+            <!-- AKSI -->
+            <td class="text-center pe-4">
+                <button class="btn btn-sm btn-primary"
+                        data-bs-toggle="modal"
+                        data-bs-target="#detailModal<?php echo $row['id_daftar_ulang']; ?>">
+                    Detail
+                </button>
+            </td>
+        </tr>
+
+    <?php endwhile; ?>
+
+    </tbody>
+</table>
+</div>
                             
                             <!-- Pagination -->
                             <?php if($total_pages > 1): ?>
@@ -1094,12 +1055,12 @@ $total_belum_daftar = $total_lulus - $total_daftar_ulang;
             </div>
             
             <!-- Footer -->
-            <footer class="mt-4 pt-3 border-top text-center text-muted">
-                <p class="mb-0">&copy; <?php echo date('Y'); ?> PMB Universitas Teknologi Nusantara • Kelola Daftar Ulang</p>
-                <small>Persentase daftar ulang: <?php echo $total_lulus > 0 ? round($total_daftar_ulang/$total_lulus*100, 1) : 0; ?>% • 
-                       Persentase lunas: <?php echo $total_daftar_ulang > 0 ? round($total_lunas/$total_daftar_ulang*100, 1) : 0; ?>% • 
-                       Terakhir diperbarui: <?php echo date('d/m/Y H:i'); ?></small>
-            </footer>
+                <footer class="mt-4 pt-3 border-top text-center text-muted">
+                    <p class="mb-0">&copy; <?php echo date('Y'); ?> PMB Universitas Teknologi Nusantara • Kelola Daftar Ulang</p>
+                    <small>Persentase daftar ulang: <?php echo $total_lulus > 0 ? round($total_daftar_ulang/$total_lulus*100, 1) : 0; ?>% • 
+                        Persentase lunas: <?php echo $total_daftar_ulang > 0 ? round($total_lunas/$total_daftar_ulang*100, 1) : 0; ?>% • 
+                        Terakhir diperbarui: <?php echo date('d/m/Y H:i'); ?></small>
+                </footer>
         </div>
     </main>
     

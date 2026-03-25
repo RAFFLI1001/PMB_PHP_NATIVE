@@ -1,8 +1,7 @@
 <?php
 require_once '../config/database.php';
-
-// Check if user is logged in
 session_start();
+
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'user') {
     header("Location: index.php");
     exit();
@@ -10,261 +9,282 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'user') {
 
 $user_id = $_SESSION['user_id'];
 
-// Check if user has registered
-$pendaftaran = mysqli_query($conn, "SELECT * FROM pendaftaran WHERE id_calon = $user_id");
-if (mysqli_num_rows($pendaftaran) == 0) {
-    header("Location: pendaftaran.php");
-    exit();
-}
+$query = "SELECT * FROM calon_mahasiswa WHERE id_calon = $user_id";
+$user = mysqli_fetch_assoc(mysqli_query($conn,$query));
 
-$pendaftaran_data = mysqli_fetch_assoc($pendaftaran);
+$pendaftaran = mysqli_query($conn,"SELECT p.*, j.nama_jurusan FROM pendaftaran p
+LEFT JOIN jurusan j ON p.id_jurusan=j.id_jurusan
+WHERE p.id_calon=$user_id");
 
-// Check if already completed test
-if ($pendaftaran_data['status'] != 'pending') {
+$data_pendaftaran = mysqli_fetch_assoc($pendaftaran);
+
+
+/* =================
+CEK SUDAH PERNAH TEST
+================= */
+
+if($data_pendaftaran['nilai_test'] != NULL){
     header("Location: hasil.php");
     exit();
 }
 
-// Check if test is in progress
-if (!isset($_SESSION['test_started'])) {
-    // Start new test session
-    $_SESSION['test_started'] = true;
-    $_SESSION['start_time'] = time();
-    $_SESSION['test_duration'] = 3600; // 60 minutes in seconds
-    $_SESSION['answers'] = array();
-    
-    // Get random questions
-    $questions_query = mysqli_query($conn, "SELECT * FROM soal_test ORDER BY RAND() LIMIT 20");
-    $questions = array();
-    while($row = mysqli_fetch_assoc($questions_query)) {
-        $questions[] = $row;
-    }
-    $_SESSION['questions'] = $questions;
-}
 
-// Handle form submission
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_test'])) {
-    // Calculate score
-    $score = 0;
-    $total_questions = count($_SESSION['questions']);
-    
-    foreach ($_SESSION['questions'] as $index => $question) {
-        $answer_key = 'question_' . $question['id_soal'];
-        if (isset($_POST[$answer_key]) && $_POST[$answer_key] == $question['jawaban_benar']) {
-            $score++;
+/* =================
+VERIFIKASI NO TEST
+================= */
+
+if(!isset($_SESSION['test_verified'])){
+
+    if(isset($_POST['cek_notest'])){
+
+        if($_POST['no_test']==$data_pendaftaran['no_test']){
+
+            $_SESSION['test_verified']=true;
+            header("Location:test.php");
+            exit();
+
+        }else{
+            $error="No Test tidak sesuai!";
         }
+
     }
-    
-    $final_score = ($score / $total_questions) * 100;
-    $status = $final_score >= 70 ? 'lulus' : 'tidak_lulus';
-    
-    // Update database
-    $query = "UPDATE pendaftaran SET nilai_test = $final_score, status = '$status' WHERE id_calon = $user_id";
-    mysqli_query($conn, $query);
-    
-    // Clear test session
-    unset($_SESSION['test_started']);
-    unset($_SESSION['questions']);
-    unset($_SESSION['answers']);
-    unset($_SESSION['start_time']);
-    
-    // Redirect to results
-    header("Location: hasil.php");
-    exit();
+
 }
 
-// Calculate remaining time
-$remaining_time = $_SESSION['test_duration'] - (time() - $_SESSION['start_time']);
-if ($remaining_time < 0) $remaining_time = 0;
-
-// Auto-submit when time is up
-if ($remaining_time <= 0 && isset($_SESSION['test_started'])) {
-    header("Location: test.php?timeup=1");
-    exit();
-}
+$hideNavbar=true;
+include '../includes/header.php';
 ?>
-<?php include '../includes/header.php'; ?>
 
-<div class="container py-4">
-    <!-- Test Header -->
-    <div class="card mb-4">
-        <div class="card-header bg-primary text-white">
-            <div class="row align-items-center">
-                <div class="col-md-6">
-                    <h4 class="mb-0"><i class="fas fa-file-alt me-2"></i>Test Online PMB UTN</h4>
-                </div>
-                <div class="col-md-6 text-end">
-                    <div id="timer" class="fs-4">
-                        <i class="fas fa-clock me-1"></i>
-                        <span id="minutes"><?php echo floor($remaining_time / 60); ?></span>:<span id="seconds"><?php echo $remaining_time % 60; ?></span>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-4">
-                    <strong>No. Test:</strong> <?php echo $pendaftaran_data['no_test']; ?>
-                </div>
-                <div class="col-md-4">
-                    <strong>Nama:</strong> <?php echo $_SESSION['user_nama']; ?>
-                </div>
-                <div class="col-md-4">
-                    <strong>Total Soal:</strong> <?php echo count($_SESSION['questions']); ?>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Test Instructions -->
-    <div class="alert alert-info mb-4">
-        <h5><i class="fas fa-info-circle me-2"></i>Petunjuk Pengerjaan:</h5>
-        <ol class="mb-0">
-            <li>Test terdiri dari <?php echo count($_SESSION['questions']); ?> soal pilihan ganda</li>
-            <li>Waktu pengerjaan: 60 menit</li>
-            <li>Pilih satu jawaban yang paling benar</li>
-            <li>Test akan otomatis tersubmit ketika waktu habis</li>
-            <li>Anda tidak dapat mengulang test setelah selesai</li>
-        </ol>
-    </div>
-    
-    <!-- Test Questions Form -->
-    <form method="POST" action="" id="testForm">
-        <?php foreach ($_SESSION['questions'] as $index => $question): ?>
-        <div class="card mb-3 question-card">
-            <div class="card-body">
-                <h5 class="card-title">Soal <?php echo $index + 1; ?></h5>
-                <p class="card-text"><?php echo nl2br(htmlspecialchars($question['pertanyaan'])); ?></p>
-                
-                <div class="form-check mb-2">
-                    <input class="form-check-input" type="radio" 
-                           name="question_<?php echo $question['id_soal']; ?>" 
-                           id="q<?php echo $question['id_soal']; ?>_a" 
-                           value="a"
-                           <?php echo isset($_SESSION['answers'][$question['id_soal']]) && $_SESSION['answers'][$question['id_soal']] == 'a' ? 'checked' : ''; ?>>
-                    <label class="form-check-label" for="q<?php echo $question['id_soal']; ?>_a">
-                        <strong>A.</strong> <?php echo htmlspecialchars($question['pilihan_a']); ?>
-                    </label>
-                </div>
-                
-                <div class="form-check mb-2">
-                    <input class="form-check-input" type="radio" 
-                           name="question_<?php echo $question['id_soal']; ?>" 
-                           id="q<?php echo $question['id_soal']; ?>_b" 
-                           value="b"
-                           <?php echo isset($_SESSION['answers'][$question['id_soal']]) && $_SESSION['answers'][$question['id_soal']] == 'b' ? 'checked' : ''; ?>>
-                    <label class="form-check-label" for="q<?php echo $question['id_soal']; ?>_b">
-                        <strong>B.</strong> <?php echo htmlspecialchars($question['pilihan_b']); ?>
-                    </label>
-                </div>
-                
-                <?php if($question['pilihan_c']): ?>
-                <div class="form-check mb-2">
-                    <input class="form-check-input" type="radio" 
-                           name="question_<?php echo $question['id_soal']; ?>" 
-                           id="q<?php echo $question['id_soal']; ?>_c" 
-                           value="c"
-                           <?php echo isset($_SESSION['answers'][$question['id_soal']]) && $_SESSION['answers'][$question['id_soal']] == 'c' ? 'checked' : ''; ?>>
-                    <label class="form-check-label" for="q<?php echo $question['id_soal']; ?>_c">
-                        <strong>C.</strong> <?php echo htmlspecialchars($question['pilihan_c']); ?>
-                    </label>
-                </div>
-                <?php endif; ?>
-                
-                <?php if($question['pilihan_d']): ?>
-                <div class="form-check mb-2">
-                    <input class="form-check-input" type="radio" 
-                           name="question_<?php echo $question['id_soal']; ?>" 
-                           id="q<?php echo $question['id_soal']; ?>_d" 
-                           value="d"
-                           <?php echo isset($_SESSION['answers'][$question['id_soal']]) && $_SESSION['answers'][$question['id_soal']] == 'd' ? 'checked' : ''; ?>>
-                    <label class="form-check-label" for="q<?php echo $question['id_soal']; ?>_d">
-                        <strong>D.</strong> <?php echo htmlspecialchars($question['pilihan_d']); ?>
-                    </label>
-                </div>
-                <?php endif; ?>
-                
-                <div class="mt-3">
-                    <span class="badge bg-info">Kategori: <?php echo $question['kategori']; ?></span>
-                </div>
-            </div>
-        </div>
-        <?php endforeach; ?>
-        
-        <!-- Submit Button -->
-        <div class="card mt-4">
-            <div class="card-body text-center">
-                <button type="submit" name="submit_test" class="btn btn-success btn-lg px-5" 
-                        onclick="return confirm('Apakah Anda yakin ingin mengakhiri test?')">
-                    <i class="fas fa-paper-plane me-2"></i>Selesai & Submit Jawaban
-                </button>
-                <p class="text-muted mt-2">Pastikan semua soal telah terjawab sebelum submit</p>
-            </div>
-        </div>
-    </form>
+<div class="container-fluid">
+<div class="row">
+
+<!-- SIDEBAR -->
+
+<div class="col-md-3 col-lg-2 sidebar d-md-block">
+<div class="position-sticky pt-4">
+
+<div class="text-center mb-4 px-3">
+
+<div class="mb-3 avatar-container">
+
+<?php if(!empty($user['foto'])): ?>
+<img src="../uploads/profile/<?php echo $user['foto']; ?>">
+<?php else: ?>
+<i class="fas fa-user-circle"></i>
+<?php endif; ?>
+
 </div>
 
-<script>
-// Timer countdown
-function startTimer(duration) {
-    var timer = duration, minutes, seconds;
-    setInterval(function () {
-        minutes = parseInt(timer / 60, 10);
-        seconds = parseInt(timer % 60, 10);
+<h6 class="text-white mb-1"><?php echo $user['nama_lengkap']; ?></h6>
+<small class="text-white-50"><?php echo $user['email']; ?></small>
 
-        minutes = minutes < 10 ? "0" + minutes : minutes;
-        seconds = seconds < 10 ? "0" + seconds : seconds;
+<div class="mt-2">
+<span class="badge bg-info">Calon Mahasiswa</span>
+</div>
 
-        document.getElementById('minutes').textContent = minutes;
-        document.getElementById('seconds').textContent = seconds;
+</div>
 
-        if (--timer < 0) {
-            document.getElementById('testForm').submit();
-        }
-        
-        // Change color when less than 5 minutes
-        if (timer < 300) {
-            document.getElementById('timer').classList.add('text-danger');
-        }
-    }, 1000);
+<h6 class="text-white-50 mb-2 px-3">MENU UTAMA</h6>
+
+<ul class="nav flex-column mb-4 px-2">
+
+<li class="nav-item">
+<a href="dashboard.php" class="nav-link">
+<i class="fas fa-tachometer-alt me-2"></i>Dashboard
+</a>
+</li>
+
+<li class="nav-item">
+<a href="profil.php" class="nav-link">
+<i class="fas fa-user-edit me-2"></i>Profil Saya
+</a>
+</li>
+
+<li class="nav-item">
+<a href="test.php" class="nav-link active">
+<i class="fas fa-clipboard-list me-2"></i>Test Online
+</a>
+</li>
+
+<li class="nav-item">
+<a href="hasil.php" class="nav-link">
+<i class="fas fa-chart-line me-2"></i>Hasil Test
+</a>
+</li>
+
+</ul>
+
+<div class="px-3 mt-4">
+<a href="../logout.php" class="btn btn-sm btn-outline-light w-100">
+<i class="fas fa-sign-out-alt me-1"></i>Keluar
+</a>
+</div>
+
+</div>
+</div>
+
+
+<!-- MAIN CONTENT -->
+
+<div class="col-md-9 col-lg-10 ms-sm-auto px-md-4 py-3">
+
+<?php if(!isset($_SESSION['test_verified'])){ ?>
+
+<!-- INPUT NO TEST -->
+
+<div class="card shadow">
+
+<div class="card-header bg-primary text-white">
+<h4><i class="fas fa-lock me-2"></i>Masukkan No Test</h4>
+</div>
+
+<div class="card-body">
+
+<?php if(isset($error)){ ?>
+
+<div class="alert alert-danger">
+<?php echo $error; ?>
+</div>
+
+<?php } ?>
+
+<form method="POST">
+
+<div class="mb-3">
+
+<label>No Test</label>
+
+<input type="text" name="no_test" class="form-control" required>
+
+</div>
+
+<button type="submit" name="cek_notest" class="btn btn-primary">
+Mulai Test
+</button>
+
+</form>
+
+</div>
+</div>
+
+
+<?php } else { ?>
+
+<!-- HALAMAN SOAL -->
+
+<div class="card shadow">
+
+<div class="card-header bg-success text-white">
+<h4><i class="fas fa-question-circle me-2"></i>Soal Test</h4>
+</div>
+
+<div class="card-body">
+
+<form method="POST" action="submit_test.php">
+
+<?php
+$soal = mysqli_query($conn,"SELECT * FROM soal_test ORDER BY RAND() LIMIT 10");
+
+$no=1;
+while($s=mysqli_fetch_assoc($soal)){
+?>
+
+<div class="mb-4">
+
+<p><b><?php echo $no++; ?>. <?php echo $s['pertanyaan']; ?></b></p>
+
+<div class="form-check">
+<input class="form-check-input" type="radio" name="jawaban[<?php echo $s['id_soal']; ?>]" value="a">
+<label class="form-check-label"><?php echo $s['pilihan_a']; ?></label>
+</div>
+
+<div class="form-check">
+<input class="form-check-input" type="radio" name="jawaban[<?php echo $s['id_soal']; ?>]" value="b">
+<label class="form-check-label"><?php echo $s['pilihan_b']; ?></label>
+</div>
+
+<div class="form-check">
+<input class="form-check-input" type="radio" name="jawaban[<?php echo $s['id_soal']; ?>]" value="c">
+<label class="form-check-label"><?php echo $s['pilihan_c']; ?></label>
+</div>
+
+<div class="form-check">
+<input class="form-check-input" type="radio" name="jawaban[<?php echo $s['id_soal']; ?>]" value="d">
+<label class="form-check-label"><?php echo $s['pilihan_d']; ?></label>
+</div>
+
+</div>
+
+<hr>
+
+<?php } ?>
+
+<button class="btn btn-success">
+Kirim Jawaban
+</button>
+
+</form>
+
+</div>
+</div>
+
+<?php } ?>
+
+</div>
+</div>
+</div>
+
+<style>
+
+.sidebar{
+background:linear-gradient(180deg,#003366 0%,#002244 100%);
+height:100vh;
+position:sticky;
+top:0;
 }
 
-// Start timer
-startTimer(<?php echo $remaining_time; ?>);
+.sidebar .nav-link{
+color:rgba(255,255,255,0.85);
+padding:12px 16px;
+border-left:3px solid transparent;
+border-radius:10px;
+margin:4px 10px;
+}
 
-// Auto-save answers
-document.querySelectorAll('input[type="radio"]').forEach(function(radio) {
-    radio.addEventListener('change', function() {
-        var formData = new FormData(document.getElementById('testForm'));
-        
-        // Save to localStorage as backup
-        var answers = {};
-        document.querySelectorAll('input[type="radio"]:checked').forEach(function(checkedRadio) {
-            answers[checkedRadio.name] = checkedRadio.value;
-        });
-        localStorage.setItem('test_answers', JSON.stringify(answers));
-    });
-});
+.sidebar .nav-link:hover{
+color:white;
+background:rgba(255,255,255,0.1);
+border-left-color:#28a745;
+}
 
-// Load saved answers from localStorage on page load
-window.addEventListener('load', function() {
-    var savedAnswers = localStorage.getItem('test_answers');
-    if (savedAnswers) {
-        savedAnswers = JSON.parse(savedAnswers);
-        for (var name in savedAnswers) {
-            var radio = document.querySelector('input[name="' + name + '"][value="' + savedAnswers[name] + '"]');
-            if (radio) radio.checked = true;
-        }
-    }
-});
+.sidebar .nav-link.active{
+color:white;
+background:rgba(255,255,255,0.15);
+border-left-color:#28a745;
+}
 
-// Warn before leaving page
-window.addEventListener('beforeunload', function (e) {
-    if (document.getElementById('testForm')) {
-        e.preventDefault();
-        e.returnValue = 'Jawaban Anda akan hilang jika Anda meninggalkan halaman ini. Apakah Anda yakin?';
-    }
-});
-</script>
+.avatar-container{
+width:90px;
+height:90px;
+border-radius:50%;
+overflow:hidden;
+margin:auto;
+display:flex;
+align-items:center;
+justify-content:center;
+}
+
+.avatar-container img{
+width:100%;
+height:100%;
+object-fit:cover;
+}
+
+.avatar-container i{
+font-size:90px;
+color:white;
+}
+
+</style>
 
 <?php include '../includes/footer.php'; ?>

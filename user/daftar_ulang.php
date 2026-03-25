@@ -95,134 +95,162 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 }
 ?>
-<?php include '../includes/header.php'; ?>
-
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header bg-success text-white">
-                    <h4 class="mb-0"><i class="fas fa-check-double me-2"></i>Form Daftar Ulang</h4>
-                </div>
-                <div class="card-body">
-                    <?php if(isset($success)): ?>
-                        <div class="alert alert-success">
-                            <h5><i class="fas fa-check-circle me-2"></i>Berhasil!</h5>
-                            <p><?php echo $success; ?></p>
-                            <p>Anda akan dialihkan ke halaman hasil dalam 3 detik...</p>
-                        </div>
-                    <?php else: ?>
-                    
-                    <?php if(isset($error)): ?>
-                        <div class="alert alert-danger"><?php echo $error; ?></div>
-                    <?php endif; ?>
-                    
-                    <!-- Information Card -->
-                    <div class="card mb-4">
-                        <div class="card-body">
-                            <h5><i class="fas fa-info-circle me-2 text-primary"></i>Informasi Peserta</h5>
-                            <div class="row mt-3">
-                                <div class="col-md-6">
-                                    <strong>Nama:</strong><br>
-                                    <?php echo $_SESSION['user_nama']; ?>
-                                </div>
-                                <div class="col-md-6">
-                                    <strong>No. Test:</strong><br>
-                                    <?php echo $data['no_test']; ?>
-                                </div>
-                                <div class="col-md-6 mt-2">
-                                    <strong>Jurusan:</strong><br>
-                                    <?php echo $data['nama_jurusan']; ?>
-                                </div>
-                                <div class="col-md-6 mt-2">
-                                    <strong>Nilai Test:</strong><br>
-                                    <span class="badge bg-success fs-6"><?php echo number_format($data['nilai_test'], 2); ?></span>
-                                </div>
-                            </div>
-                        </div>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daftar Ulang - Arten Campus</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            padding-top: 20px;
+        }
+        .card {
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+        .badge {
+            padding: 8px 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container py-4">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <h4 class="mb-0"><i class="fas fa-check-double me-2"></i>Form Daftar Ulang</h4>
                     </div>
-                    
-                    <!-- Payment Information -->
-                    <div class="alert alert-info mb-4">
-                        <h5><i class="fas fa-credit-card me-2"></i>Informasi Pembayaran</h5>
-                        <p>Biaya daftar ulang: <strong>Rp 1.500.000</strong></p>
-                        <p>Transfer ke:<br>
-                           <strong>Bank BCA</strong><br>
-                           No. Rekening: <strong>123-456-7890</strong><br>
-                           Atas Nama: <strong>UNIVERSITAS TEKNOLOGI NUSANTARA</strong>
-                        </p>
-                        <p class="mb-0"><strong>Catatan:</strong> Upload bukti transfer yang jelas</p>
-                    </div>
-                    
-                    <!-- Registration Form -->
-                    <form method="POST" action="" enctype="multipart/form-data">
-                        <div class="mb-4">
-                            <h5>Form Daftar Ulang</h5>
-                            
-                            <div class="mb-3">
-                                <label class="form-label">Upload Bukti Pembayaran <span class="text-danger">*</span></label>
-                                <input type="file" class="form-control" name="bukti_pembayaran" accept="image/*" required>
-                                <small class="text-muted">Format: JPG, PNG, GIF (Maks. 2MB)</small>
+                    <div class="card-body">
+                        <?php if(isset($success)): ?>
+                            <div class="alert alert-success">
+                                <h5><i class="fas fa-check-circle me-2"></i>Berhasil!</h5>
+                                <p><?php echo $success; ?></p>
+                                <p>Anda akan dialihkan ke halaman hasil dalam 3 detik...</p>
                             </div>
-                            
-                            <div class="mb-3">
-                                <label class="form-label">Keterangan (Opsional)</label>
-                                <textarea class="form-control" name="keterangan" rows="3" 
-                                          placeholder="Tambahkan keterangan jika diperlukan..."></textarea>
+                        <?php else: ?>
+                        
+                        <?php if(isset($error)): ?>
+                            <div class="alert alert-danger"><?php echo $error; ?></div>
+                        <?php endif; ?>
+                        
+                        <!-- Information Card -->
+                        <div class="card mb-4">
+                            <div class="card-body">
+                                <h5><i class="fas fa-info-circle me-2 text-primary"></i>Informasi Peserta</h5>
+                                <div class="row mt-3">
+                                    <div class="col-md-6">
+                                        <strong>Nama:</strong><br>
+                                        <?php echo $_SESSION['user_nama']; ?>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <strong>No. Test:</strong><br>
+                                        <?php echo $data['no_test']; ?>
+                                    </div>
+                                    <div class="col-md-6 mt-2">
+                                        <strong>Jurusan:</strong><br>
+                                        <?php echo $data['nama_jurusan']; ?>
+                                    </div>
+                                    <div class="col-md-6 mt-2">
+                                        <strong>Nilai Test:</strong><br>
+                                        <span class="badge bg-success fs-6"><?php echo number_format($data['nilai_test'], 2); ?></span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         
-                        <!-- Agreement -->
-                        <div class="mb-4">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="agree1" required>
-                                <label class="form-check-label" for="agree1">
-                                    Saya telah mentransfer biaya daftar ulang sesuai dengan nominal yang ditentukan
-                                </label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="agree2" required>
-                                <label class="form-check-label" for="agree2">
-                                    Saya bersedia mengikuti seluruh kegiatan akademik di Universitas Teknologi Nusantara
-                                </label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="agree3" required>
-                                <label class="form-check-label" for="agree3">
-                                    Saya menyetujui semua peraturan dan tata tertib yang berlaku
-                                </label>
-                            </div>
+                        <!-- Payment Information -->
+                        <div class="alert alert-info mb-4">
+                            <h5><i class="fas fa-credit-card me-2"></i>Informasi Pembayaran</h5>
+                            <p>Biaya daftar ulang: <strong>Rp 1.500.000</strong></p>
+                            <p>Transfer ke:<br>
+                               <strong>Bank BCA</strong><br>
+                               No. Rekening: <strong>123-456-7890</strong><br>
+                               Atas Nama: <strong>UNIVERSITAS TEKNOLOGI NUSANTARA</strong>
+                            </p>
+                            <p class="mb-0"><strong>Catatan:</strong> Upload bukti transfer yang jelas</p>
                         </div>
                         
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-success btn-lg">
-                                <i class="fas fa-paper-plane me-2"></i>Submit Daftar Ulang
-                            </button>
-                            <a href="hasil.php" class="btn btn-outline-secondary">Kembali ke Hasil</a>
-                        </div>
-                    </form>
-                    
-                    <?php endif; ?>
+                        <!-- Registration Form -->
+                        <form method="POST" action="" enctype="multipart/form-data">
+                            <div class="mb-4">
+                                <h5>Form Daftar Ulang</h5>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Upload Bukti Pembayaran <span class="text-danger">*</span></label>
+                                    <input type="file" class="form-control" name="bukti_pembayaran" accept="image/*" required>
+                                    <small class="text-muted">Format: JPG, PNG, GIF (Maks. 2MB)</small>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Keterangan (Opsional)</label>
+                                    <textarea class="form-control" name="keterangan" rows="3" 
+                                              placeholder="Tambahkan keterangan jika diperlukan..."></textarea>
+                                </div>
+                            </div>
+                            
+                            <!-- Agreement -->
+                            <div class="mb-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="agree1" required>
+                                    <label class="form-check-label" for="agree1">
+                                        Saya telah mentransfer biaya daftar ulang sesuai dengan nominal yang ditentukan
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="agree2" required>
+                                    <label class="form-check-label" for="agree2">
+                                        Saya bersedia mengikuti seluruh kegiatan akademik di Universitas Teknologi Nusantara
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="agree3" required>
+                                    <label class="form-check-label" for="agree3">
+                                        Saya menyetujui semua peraturan dan tata tertib yang berlaku
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-success btn-lg">
+                                    <i class="fas fa-paper-plane me-2"></i>Submit Daftar Ulang
+                                </button>
+                                <a href="hasil.php" class="btn btn-outline-secondary">Kembali ke Hasil</a>
+                            </div>
+                        </form>
+                        
+                        <?php endif; ?>
+                    </div>
                 </div>
-            </div>
-            
-            <!-- Important Notes -->
-            <div class="card mt-4">
-                <div class="card-header bg-warning">
-                    <h5 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Catatan Penting</h5>
-                </div>
-                <div class="card-body">
-                    <ul>
-                        <li>Daftar ulang hanya dapat dilakukan oleh peserta yang LULUS seleksi</li>
-                        <li>NIM akan diberikan setelah admin memverifikasi bukti pembayaran</li>
-                        <li>Proses verifikasi membutuhkan waktu 1-3 hari kerja</li>
-                        <li>Setelah daftar ulang, Anda resmi menjadi mahasiswa UTN</li>
-                        <li>Informasi perkuliahan akan dikirimkan via email setelah proses selesai</li>
-                    </ul>
+                
+                <!-- Important Notes -->
+                <div class="card mt-4">
+                    <div class="card-header bg-warning">
+                        <h5 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Catatan Penting</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul>
+                            <li>Daftar ulang hanya dapat dilakukan oleh peserta yang LULUS seleksi</li>
+                            <li>NIM akan diberikan setelah admin memverifikasi bukti pembayaran</li>
+                            <li>Proses verifikasi membutuhkan waktu 1-3 hari kerja</li>
+                            <li>Setelah daftar ulang, Anda resmi menjadi mahasiswa UTN</li>
+                            <li>Informasi perkuliahan akan dikirimkan via email setelah proses selesai</li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
 <?php include '../includes/footer.php'; ?>

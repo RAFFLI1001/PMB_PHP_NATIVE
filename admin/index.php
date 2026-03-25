@@ -31,7 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 }
 ?>
-<?php include '../includes/header.php'; ?>
+
 
 <!DOCTYPE html>
 <html lang="id">
@@ -383,14 +383,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <!-- Body -->
                 <div class="login-body">
                     <!-- Error Message -->
-                    <?php if(isset($error)): ?>
-                        <div class="alert-danger">
-                            <div class="d-flex align-items-center">
-                                <i class="fas fa-exclamation-triangle me-2"></i>
-                                <span><?php echo $error; ?></span>
-                            </div>
-                        </div>
-                    <?php endif; ?>
+                 
                     
                     <!-- Login Form -->
                     <form method="POST" action="" id="loginForm">
@@ -451,15 +444,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     </div>
                     
                     <!-- Default Credentials -->
-                    <div class="alert-info">
-                        <div class="d-flex align-items-start">
-                            <i class="fas fa-info-circle me-2 mt-1"></i>
-                            <div>
-                                <small><strong>Kredensial default:</strong></small><br>
-                                <small>Username: <code>admin</code> | Password: <code>admin123</code></small>
-                            </div>
-                        </div>
-                    </div>
+                    
                 </div>
             </div>
             

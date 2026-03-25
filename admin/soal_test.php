@@ -121,7 +121,7 @@ while($row = mysqli_fetch_assoc($kategori_result)) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manajemen Soal Test - Admin PMB UTN</title>
+    <title>Manajemen Soal Test - Admin PMB</title>
     
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -582,7 +582,7 @@ while($row = mysqli_fetch_assoc($kategori_result)) {
                 </div>
                 <div class="admin-info">
                     <h5><?php echo $_SESSION['admin_nama'] ?? 'Administrator'; ?></h5>
-                    <p>Admin PMB UTN</p>
+                    <p>Admin PMB Arten Campus</p>
                 </div>
             </div>
         </div>
