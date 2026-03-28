@@ -453,7 +453,7 @@ $result = mysqli_query($conn, $query);
                 </div>
                 <div class="admin-info">
                     <h5><?php echo $_SESSION['admin_nama'] ?? 'Administrator'; ?></h5>
-                    <p>Admin PMB Arten Campus</p>
+                    <p>Universitas Admin</p>
                 </div>
             </div>
         </div>
@@ -478,10 +478,6 @@ $result = mysqli_query($conn, $query);
             <a href="daftar_ulang.php" class="nav-link">
                 <i class="fas fa-check-double nav-icon"></i>
                 <span>Daftar Ulang</span>
-            </a>
-            <a href="pengaturan.php" class="nav-link">
-                <i class="fas fa-cog nav-icon"></i>
-                <span>Pengaturan</span>
             </a>
             <a href="../logout.php" class="nav-link mt-4">
                 <i class="fas fa-sign-out-alt nav-icon"></i>
@@ -798,8 +794,8 @@ $result = mysqli_query($conn, $query);
             
             <!-- Footer -->
             <footer class="mt-4 pt-3 border-top text-center text-muted">
-                <p class="mb-0">&copy; <?php echo date('Y'); ?> PMB Universitas Teknologi Nusantara • Data Calon Maba</p>
-                <small>Menampilkan <?php echo min($limit, $total_rows - $offset); ?> dari <?php echo $total_rows; ?> data</small>
+                <p class="mb-0">PMB Universitas Arten</p>
+                <small>Terakhir diakses: <?php echo date('d/m/Y H:i'); ?></small>
             </footer>
         </div>
     </main>

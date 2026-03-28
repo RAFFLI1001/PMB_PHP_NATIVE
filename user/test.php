@@ -9,6 +9,14 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'user') {
 
 $user_id = $_SESSION['user_id'];
 
+/* =================
+AMBIL WAKTU UJIAN DARI ADMIN
+================= */
+$timer = mysqli_query($conn,"SELECT * FROM pengaturan_ujian LIMIT 1");
+$data_timer = mysqli_fetch_assoc($timer);
+
+$durasi_menit = $data_timer['durasi_menit']; // ambil dari admin
+
 $query = "SELECT * FROM calon_mahasiswa WHERE id_calon = $user_id";
 $user = mysqli_fetch_assoc(mysqli_query($conn,$query));
 
@@ -59,8 +67,12 @@ include '../includes/header.php';
 <div class="row">
 
 <!-- SIDEBAR -->
-
+<!-- SIDEBAR (sembunyikan saat test dimulai) -->
+<?php if(!isset($_SESSION['test_verified'])){ ?>
 <div class="col-md-3 col-lg-2 sidebar d-md-block">
+<?php } else { ?>
+<div class="d-none">
+<?php } ?>
 <div class="position-sticky pt-4">
 
 <div class="text-center mb-4 px-3">
@@ -123,15 +135,16 @@ include '../includes/header.php';
 </div>
 </div>
 
-
 <!-- MAIN CONTENT -->
-
+<?php if(!isset($_SESSION['test_verified'])){ ?>
 <div class="col-md-9 col-lg-10 ms-sm-auto px-md-4 py-3">
+<?php } else { ?>
+<div class="col-12 px-4 py-3">
+<?php } ?>
 
 <?php if(!isset($_SESSION['test_verified'])){ ?>
 
 <!-- INPUT NO TEST -->
-
 <div class="card shadow">
 
 <div class="card-header bg-primary text-white">
@@ -141,21 +154,16 @@ include '../includes/header.php';
 <div class="card-body">
 
 <?php if(isset($error)){ ?>
-
 <div class="alert alert-danger">
 <?php echo $error; ?>
 </div>
-
 <?php } ?>
 
 <form method="POST">
 
 <div class="mb-3">
-
 <label>No Test</label>
-
 <input type="text" name="no_test" class="form-control" required>
-
 </div>
 
 <button type="submit" name="cek_notest" class="btn btn-primary">
@@ -167,20 +175,25 @@ Mulai Test
 </div>
 </div>
 
-
 <?php } else { ?>
 
 <!-- HALAMAN SOAL -->
-
 <div class="card shadow">
 
-<div class="card-header bg-success text-white">
-<h4><i class="fas fa-question-circle me-2"></i>Soal Test</h4>
+<div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+<h4 class="mb-0"><i class="fas fa-question-circle me-2"></i>Soal Test</h4>
+
+<!-- TIMER -->
+<div class="bg-dark px-3 py-1 rounded">
+<i class="fas fa-clock me-1"></i>
+<span id="timer"><?php echo $durasi_menit; ?>:00</span>
+</div>
+
 </div>
 
 <div class="card-body">
 
-<form method="POST" action="submit_test.php">
+<form method="POST" action="submit_test.php" id="formTest">
 
 <?php
 $soal = mysqli_query($conn,"SELECT * FROM soal_test ORDER BY RAND() LIMIT 10");
@@ -234,8 +247,8 @@ Kirim Jawaban
 </div>
 </div>
 
-<style>
 
+<style>
 .sidebar{
 background:linear-gradient(180deg,#003366 0%,#002244 100%);
 height:100vh;
@@ -284,7 +297,32 @@ object-fit:cover;
 font-size:90px;
 color:white;
 }
-
 </style>
+
+
+<!-- TIMER SCRIPT -->
+<script>
+
+let waktu = <?php echo $durasi_menit; ?> * 60;
+
+let timer = setInterval(function(){
+
+    let menit = Math.floor(waktu / 60);
+    let detik = waktu % 60;
+
+    document.getElementById("timer").innerHTML =
+        menit + ":" + (detik < 10 ? "0" + detik : detik);
+
+    waktu--;
+
+    if(waktu < 0){
+        clearInterval(timer);
+        alert("Waktu habis! Jawaban akan dikirim otomatis.");
+        document.getElementById("formTest").submit();
+    }
+
+},1000);
+
+</script>
 
 <?php include '../includes/footer.php'; ?>

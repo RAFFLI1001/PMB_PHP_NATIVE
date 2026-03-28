@@ -30,7 +30,6 @@ while($row = mysqli_fetch_assoc($jurusan_result)) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="shortcut icon" href="../assets/image/icon_web.jpg" type="image/x-icon">
     <title>Dashboard Admin - PMB UTN</title>
     
     <!-- Bootstrap 5 CSS -->
@@ -306,7 +305,7 @@ while($row = mysqli_fetch_assoc($jurusan_result)) {
                 </div>
                 <div class="admin-info">
                     <h5><?php echo $_SESSION['admin_nama'] ?? 'Administrator'; ?></h5>
-                    <p>Admin PMB Arten Campus</p>
+                    <p>Universitas Admin</p>
                 </div>
             </div>
         </div>
@@ -331,10 +330,6 @@ while($row = mysqli_fetch_assoc($jurusan_result)) {
             <a href="daftar_ulang.php" class="nav-link">
                 <i class="fas fa-check-double nav-icon"></i>
                 <span>Daftar Ulang</span>
-            </a>
-            <a href="pengaturan.php" class="nav-link">
-                <i class="fas fa-cog nav-icon"></i>
-                <span>Pengaturan</span>
             </a>
             <a href="../logout.php" class="nav-link mt-4">
                 <i class="fas fa-sign-out-alt nav-icon"></i>
@@ -475,7 +470,6 @@ while($row = mysqli_fetch_assoc($jurusan_result)) {
                                         <th>Jurusan</th>
                                         <th>Tanggal</th>
                                         <th>Status</th>
-                                        <th>Aksi</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -503,11 +497,6 @@ while($row = mysqli_fetch_assoc($jurusan_result)) {
                                             <span class="status-badge badge-<?php echo $status_badge; ?>">
                                                 <?php echo $status_text; ?>
                                             </span>
-                                        </td>
-                                        <td>
-                                            <a href="#" class="btn btn-sm btn-outline-primary">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
                                         </td>
                                     </tr>
                                     <?php endwhile; else: ?>
@@ -570,55 +559,11 @@ while($row = mysqli_fetch_assoc($jurusan_result)) {
             </div>
             
             <!-- Quick Actions -->
-            <div class="row">
-                <div class="col-12">
-                    <div class="dashboard-card">
-                        <h3 class="card-title">Aksi Cepat</h3>
-                        <div class="row g-3">
-                            <div class="col-md-2 col-4">
-                                <a href="data_maba.php" class="action-btn">
-                                    <i class="fas fa-user-plus action-icon"></i>
-                                    <span class="small">Tambah Maba</span>
-                                </a>
-                            </div>
-                            <div class="col-md-2 col-4">
-                                <a href="soal_test.php" class="action-btn">
-                                    <i class="fas fa-edit action-icon"></i>
-                                    <span class="small">Kelola Soal</span>
-                                </a>
-                            </div>
-                            <div class="col-md-2 col-4">
-                                <a href="hasil_test.php" class="action-btn">
-                                    <i class="fas fa-chart-line action-icon"></i>
-                                    <span class="small">Analisis Hasil</span>
-                                </a>
-                            </div>
-                            <div class="col-md-2 col-4">
-                                <a href="daftar_ulang.php" class="action-btn">
-                                    <i class="fas fa-file-invoice-dollar action-icon"></i>
-                                    <span class="small">Verifikasi</span>
-                                </a>
-                            </div>
-                            <div class="col-md-2 col-4">
-                                <a href="laporan.php" class="action-btn">
-                                    <i class="fas fa-file-pdf action-icon"></i>
-                                    <span class="small">Laporan</span>
-                                </a>
-                            </div>
-                            <div class="col-md-2 col-4">
-                                <a href="pengaturan.php" class="action-btn">
-                                    <i class="fas fa-cogs action-icon"></i>
-                                    <span class="small">Pengaturan</span>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+
             
             <!-- Footer -->
             <footer class="mt-4 pt-3 border-top text-center text-muted">
-                <p class="mb-0">&copy; <?php echo date('Y'); ?> PMB Universitas Teknologi Nusantara • Versi 2.0.1</p>
+                <p class="mb-0">PMB Universitas Arten</p>
                 <small>Terakhir diakses: <?php echo date('d/m/Y H:i'); ?></small>
             </footer>
         </div>

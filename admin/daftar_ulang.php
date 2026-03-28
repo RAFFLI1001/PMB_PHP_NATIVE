@@ -609,7 +609,7 @@ $total_belum_daftar = $total_lulus - $total_daftar_ulang;
                 </div>
                 <div class="admin-info">
                     <h5><?php echo $_SESSION['admin_nama'] ?? 'Administrator'; ?></h5>
-                    <p>Admin PMB Arten Campus</p>
+                    <p>Universitas Admin</p>
                 </div>
             </div>
         </div>
@@ -634,10 +634,6 @@ $total_belum_daftar = $total_lulus - $total_daftar_ulang;
             <a href="daftar_ulang.php" class="nav-link active">
                 <i class="fas fa-check-double nav-icon"></i>
                 <span>Daftar Ulang</span>
-            </a>
-            <a href="pengaturan.php" class="nav-link">
-                <i class="fas fa-cog nav-icon"></i>
-                <span>Pengaturan</span>
             </a>
             <a href="../logout.php" class="nav-link mt-4">
                 <i class="fas fa-sign-out-alt nav-icon"></i>
@@ -879,9 +875,6 @@ $total_belum_daftar = $total_lulus - $total_daftar_ulang;
                             <button class="btn btn-outline-primary" onclick="exportToExcel()">
                                 <i class="fas fa-file-excel me-2"></i>Export Data
                             </button>
-                            <button class="btn btn-outline-success" onclick="printDaftarUlang()">
-                                <i class="fas fa-print me-2"></i>Cetak Laporan
-                            </button>
                             <a href="generate_kartu.php" class="btn btn-outline-info">
                                 <i class="fas fa-id-card me-2"></i>Generate Kartu Mahasiswa
                             </a>
@@ -912,6 +905,8 @@ $total_belum_daftar = $total_lulus - $total_daftar_ulang;
             <th>Jurusan</th>
             <th>Status Pembayaran</th>
             <th class="text-center">Bukti</th>
+<th class="text-center">KTP / Pelajar</th>
+<th class="text-center">Kartu Keluarga</th>
             <th class="text-center pe-4">Aksi</th>
         </tr>
     </thead>
@@ -975,16 +970,41 @@ $total_belum_daftar = $total_lulus - $total_daftar_ulang;
             </td>
 
             <!-- BUKTI -->
-            <td class="text-center">
-                <?php if($row['bukti_pembayaran']): ?>
-                    <button class="btn btn-sm btn-outline-info"
-                            onclick="showBukti('<?php echo $row['bukti_pembayaran']; ?>','<?php echo $row['nama_lengkap']; ?>')">
-                        <i class="fas fa-eye"></i>
-                    </button>
-                <?php else: ?>
-                    <span class="text-muted">Belum ada</span>
-                <?php endif; ?>
-            </td>
+            <!-- BUKTI PEMBAYARAN -->
+<td class="text-center">
+    <?php if($row['bukti_pembayaran']): ?>
+        <button class="btn btn-sm btn-outline-info"
+                onclick="showFile('<?php echo $row['bukti_pembayaran']; ?>','Bukti Pembayaran','<?php echo $row['nama_lengkap']; ?>')">
+            <i class="fas fa-eye"></i>
+        </button>
+    <?php else: ?>
+        <span class="text-muted">Belum ada</span>
+    <?php endif; ?>
+</td>
+
+<!-- KTP / KARTU PELAJAR -->
+<td class="text-center">
+    <?php if($row['upload_ktp']): ?>
+        <button class="btn btn-sm btn-outline-success"
+                onclick="showFile('<?php echo $row['upload_ktp']; ?>','KTP / Kartu Pelajar','<?php echo $row['nama_lengkap']; ?>')">
+            <i class="fas fa-id-card"></i>
+        </button>
+    <?php else: ?>
+        <span class="text-muted">Belum ada</span>
+    <?php endif; ?>
+</td>
+
+<!-- KARTU KELUARGA -->
+<td class="text-center">
+    <?php if($row['upload_kk']): ?>
+        <button class="btn btn-sm btn-outline-warning"
+                onclick="showFile('<?php echo $row['upload_kk']; ?>','Kartu Keluarga','<?php echo $row['nama_lengkap']; ?>')">
+            <i class="fas fa-users"></i>
+        </button>
+    <?php else: ?>
+        <span class="text-muted">Belum ada</span>
+    <?php endif; ?>
+</td>
 
             <!-- AKSI -->
             <td class="text-center pe-4">
@@ -1056,11 +1076,9 @@ $total_belum_daftar = $total_lulus - $total_daftar_ulang;
             
             <!-- Footer -->
                 <footer class="mt-4 pt-3 border-top text-center text-muted">
-                    <p class="mb-0">&copy; <?php echo date('Y'); ?> PMB Universitas Teknologi Nusantara • Kelola Daftar Ulang</p>
-                    <small>Persentase daftar ulang: <?php echo $total_lulus > 0 ? round($total_daftar_ulang/$total_lulus*100, 1) : 0; ?>% • 
-                        Persentase lunas: <?php echo $total_daftar_ulang > 0 ? round($total_lunas/$total_daftar_ulang*100, 1) : 0; ?>% • 
-                        Terakhir diperbarui: <?php echo date('d/m/Y H:i'); ?></small>
-                </footer>
+                <p class="mb-0">PMB Universitas Arten</p>
+                <small>Terakhir diakses: <?php echo date('d/m/Y H:i'); ?></small>
+            </footer>
         </div>
     </main>
     
@@ -1174,15 +1192,17 @@ $total_belum_daftar = $total_lulus - $total_daftar_ulang;
         });
         
         // Functions
-        function showBukti(filename, nama) {
-            const imageUrl = '../assets/uploads/bukti/' + filename;
-            document.getElementById('buktiImage').src = imageUrl;
-            document.getElementById('buktiModalTitle').textContent = 'Bukti Pembayaran - ' + nama;
-            document.getElementById('downloadBukti').href = imageUrl;
-            
-            const modal = new bootstrap.Modal(document.getElementById('buktiModal'));
-            modal.show();
-        }
+       function showFile(filename, title, nama) {
+
+    const fileUrl = '../assets/uploads/daftar_ulang/' + filename;
+
+    document.getElementById('buktiImage').src = fileUrl;
+    document.getElementById('buktiModalTitle').textContent = title + ' - ' + nama;
+    document.getElementById('downloadBukti').href = fileUrl;
+
+    const modal = new bootstrap.Modal(document.getElementById('buktiModal'));
+    modal.show();
+}
         
         function generateNIM(id, nama) {
             if (confirm('Generate NIM untuk ' + nama + '?')) {
@@ -1190,9 +1210,9 @@ $total_belum_daftar = $total_lulus - $total_daftar_ulang;
             }
         }
         
-        function exportToExcel() {
-            alert('Export data ke Excel (implementasi menggunakan PHPExcel)');
-        }
+       function exportToExcel() {
+    window.location.href = 'export_daftar_ulang.php';
+}
         
         function printDaftarUlang() {
             window.print();

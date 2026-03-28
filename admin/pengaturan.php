@@ -661,10 +661,6 @@ $total_soal = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as total F
                 <i class="fas fa-check-double nav-icon"></i>
                 <span>Daftar Ulang</span>
             </a>
-            <a href="pengaturan.php" class="nav-link active">
-                <i class="fas fa-cog nav-icon"></i>
-                <span>Pengaturan</span>
-            </a>
             <a href="../logout.php" class="nav-link mt-4">
                 <i class="fas fa-sign-out-alt nav-icon"></i>
                 <span>Logout</span>

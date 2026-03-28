@@ -75,6 +75,11 @@ if ($has_registered) {
                             <i class="fas fa-user-edit me-2"></i>Profil Saya
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a href="pendaftaran.php" class="nav-link">
+                            <i class="fas fa-user-graduate me-2"></i>Pendaftaran
+                        </a>
+                    </li>
 
                     <?php if ($has_registered): ?>
         
@@ -137,9 +142,6 @@ if ($has_registered) {
                         <span id="currentTime"><?php echo date('d F Y H:i'); ?></span>
                     </span>
 
-                    <button id="printDashboard" type="button" class="btn btn-outline-primary btn-sm">
-                        <i class="fas fa-print me-1"></i>Cetak
-                    </button>
                 </div>
             </div>
 

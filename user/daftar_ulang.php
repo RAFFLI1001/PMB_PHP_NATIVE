@@ -34,57 +34,96 @@ if ($data['sudah_daftar_ulang'] > 0) {
 
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    // Handle file upload
-    $upload_ok = true;
-    $bukti_pembayaran = '';
-    
-    if (isset($_FILES['bukti_pembayaran']) && $_FILES['bukti_pembayaran']['error'] == 0) {
-        $target_dir = "../assets/uploads/bukti/";
-        if (!file_exists($target_dir)) {
-            mkdir($target_dir, 0777, true);
-        }
-        
-        $file_name = time() . '_' . basename($_FILES['bukti_pembayaran']['name']);
-        $target_file = $target_dir . $file_name;
-        $imageFileType = strtolower(pathinfo($target_file, PATHINFO_EXTENSION));
-        
-        // Check if image file is a actual image
-        $check = getimagesize($_FILES['bukti_pembayaran']['tmp_name']);
-        if ($check === false) {
-            $error = "File bukan gambar.";
-            $upload_ok = false;
-        }
-        
-        // Check file size (max 2MB)
-        if ($_FILES['bukti_pembayaran']['size'] > 2000000) {
-            $error = "Ukuran file maksimal 2MB.";
-            $upload_ok = false;
-        }
-        
-        // Allow certain file formats
-        $allowed_types = array('jpg', 'jpeg', 'png', 'gif');
-        if (!in_array($imageFileType, $allowed_types)) {
-            $error = "Hanya format JPG, JPEG, PNG & GIF yang diizinkan.";
-            $upload_ok = false;
-        }
-        
-        if ($upload_ok) {
-            if (move_uploaded_file($_FILES['bukti_pembayaran']['tmp_name'], $target_file)) {
-                $bukti_pembayaran = $file_name;
-            } else {
-                $error = "Terjadi kesalahan saat upload file.";
-                $upload_ok = false;
-            }
-        }
-    } else {
-        $error = "Silakan upload bukti pembayaran.";
-        $upload_ok = false;
+// ================= UPLOAD FILE =================
+$upload_ok = true;
+$bukti_pembayaran = '';
+$upload_ktp = '';
+$upload_kk = '';
+
+$target_dir = "../assets/uploads/daftar_ulang/";
+
+// Buat folder jika belum ada
+if (!file_exists($target_dir)) {
+    mkdir($target_dir, 0777, true);
+}
+
+// Fungsi upload
+function uploadFile($input_name, $target_dir) {
+
+    if (!isset($_FILES[$input_name])) {
+        return false;
     }
+
+    if ($_FILES[$input_name]['error'] != 0) {
+        return false;
+    }
+
+    $file_name = time() . '_' . basename($_FILES[$input_name]['name']);
+    $target_file = $target_dir . $file_name;
+
+    $imageFileType = strtolower(pathinfo($target_file, PATHINFO_EXTENSION));
+
+    // Format yang diizinkan
+    $allowed_types = ['jpg', 'jpeg', 'png', 'pdf'];
+
+    if (!in_array($imageFileType, $allowed_types)) {
+        return false;
+    }
+
+    // Maks 5MB (biar KK aman)
+    if ($_FILES[$input_name]['size'] > 5000000) {
+        return false;
+    }
+
+    if (move_uploaded_file($_FILES[$input_name]['tmp_name'], $target_file)) {
+        return $file_name;
+    }
+
+    return false;
+}
+
+// Upload bukti pembayaran
+$bukti_pembayaran = uploadFile('bukti_pembayaran', $target_dir);
+
+// Upload KTP / kartu pelajar
+$upload_ktp = uploadFile('upload_ktp', $target_dir);
+
+// Upload KK
+$upload_kk = uploadFile('upload_kk', $target_dir);
+
+// Validasi
+if (!$bukti_pembayaran) {
+    $error = "Upload bukti pembayaran gagal!";
+    $upload_ok = false;
+}
+
+if (!$upload_ktp) {
+    $error = "Upload KTP / kartu pelajar gagal!";
+    $upload_ok = false;
+}
+
+if (!$upload_kk) {
+    echo "Error upload KK: ";
+    print_r($_FILES['upload_kk']);
+}
     
     if ($upload_ok) {
         // Generate NIM (will be done by admin, but we insert with empty NIM first)
-        $query = "INSERT INTO daftar_ulang (id_pendaftaran, tanggal_daftar_ulang, bukti_pembayaran, status_pembayaran) 
-                  VALUES ({$data['id_pendaftaran']}, CURDATE(), '$bukti_pembayaran', 'belum')";
+      $query = "INSERT INTO daftar_ulang (
+    id_pendaftaran,
+    tanggal_daftar_ulang,
+    bukti_pembayaran,
+    upload_ktp,
+    upload_kk,
+    status_pembayaran
+) VALUES (
+    {$data['id_pendaftaran']},
+    CURDATE(),
+    '$bukti_pembayaran',
+    '$upload_ktp',
+    '$upload_kk',
+    'belum'
+)";
         
         if (mysqli_query($conn, $query)) {
             $success = "Daftar ulang berhasil! Tunggu verifikasi dari admin untuk mendapatkan NIM.";
@@ -188,6 +227,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                     <input type="file" class="form-control" name="bukti_pembayaran" accept="image/*" required>
                                     <small class="text-muted">Format: JPG, PNG, GIF (Maks. 2MB)</small>
                                 </div>
+
+                                <div class="mb-3">
+    <label class="form-label">Upload KTP / Kartu Pelajar <span class="text-danger">*</span></label>
+    <input type="file" class="form-control" name="upload_ktp" accept="image/*,.pdf" required>
+    <small class="text-muted">Format: JPG, PNG, PDF (Maks. 2MB)</small>
+</div>
+
+<div class="mb-3">
+    <label class="form-label">Upload Kartu Keluarga (KK) <span class="text-danger">*</span></label>
+    <input type="file" class="form-control" name="upload_kk" accept="image/*,.pdf" required>
+    <small class="text-muted">Format: JPG, PNG, PDF (Maks. 2MB)</small>
+</div>
                                 
                                 <div class="mb-3">
                                     <label class="form-label">Keterangan (Opsional)</label>

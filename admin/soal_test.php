@@ -115,6 +115,34 @@ $kategori_result = mysqli_query($conn, $kategori_query);
 while($row = mysqli_fetch_assoc($kategori_result)) {
     $kategori_stats[] = $row;
 }
+
+$cek_timer = mysqli_query($conn,"SHOW TABLES LIKE 'pengaturan_ujian'");
+if(mysqli_num_rows($cek_timer) == 0){
+    mysqli_query($conn,"CREATE TABLE pengaturan_ujian (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        durasi_menit INT NOT NULL DEFAULT 60
+    )");
+
+    mysqli_query($conn,"INSERT INTO pengaturan_ujian (durasi_menit) VALUES (60)");
+}
+
+/* =====================================================
+   AMBIL WAKTU UJIAN
+===================================================== */
+$timer_query = mysqli_query($conn,"SELECT * FROM pengaturan_ujian LIMIT 1");
+$timer_data = mysqli_fetch_assoc($timer_query);
+
+/* =====================================================
+   UPDATE WAKTU UJIAN
+===================================================== */
+if(isset($_POST['update_timer'])){
+    $durasi = intval($_POST['durasi_menit']);
+    mysqli_query($conn,"UPDATE pengaturan_ujian SET durasi_menit='$durasi'");
+    $_SESSION['success'] = "Waktu ujian berhasil diubah!";
+    header("Location: soal_test.php");
+    exit();
+}
+
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -582,7 +610,7 @@ while($row = mysqli_fetch_assoc($kategori_result)) {
                 </div>
                 <div class="admin-info">
                     <h5><?php echo $_SESSION['admin_nama'] ?? 'Administrator'; ?></h5>
-                    <p>Admin PMB Arten Campus</p>
+                    <p>Universitas Admin</p>
                 </div>
             </div>
         </div>
@@ -608,10 +636,7 @@ while($row = mysqli_fetch_assoc($kategori_result)) {
                 <i class="fas fa-check-double nav-icon"></i>
                 <span>Daftar Ulang</span>
             </a>
-            <a href="pengaturan.php" class="nav-link">
-                <i class="fas fa-cog nav-icon"></i>
-                <span>Pengaturan</span>
-            </a>
+           
             <a href="../logout.php" class="nav-link mt-4">
                 <i class="fas fa-sign-out-alt nav-icon"></i>
                 <span>Logout</span>
@@ -954,6 +979,7 @@ while($row = mysqli_fetch_assoc($kategori_result)) {
                                             </td>
                                         </tr>
                                         
+                                        
                                         <!-- Preview Modal -->
                                         <div class="modal fade" id="previewModal<?php echo $soal['id_soal']; ?>" tabindex="-1">
                                             <div class="modal-dialog modal-lg">
@@ -1091,6 +1117,26 @@ while($row = mysqli_fetch_assoc($kategori_result)) {
                                 </table>
                             </div>
                             
+                            <!-- Pengaturan Waktu Ujian -->
+<div class="dashboard-card">
+    <h3 class="card-title">
+        <i class="fas fa-clock me-2"></i>Pengaturan Waktu Ujian
+    </h3>
+
+    <form method="POST" class="row g-3">
+        <div class="col-md-6">
+            <label class="form-label">Durasi Ujian (Menit)</label>
+            <input type="number" name="durasi_menit" class="form-control"
+                   value="<?php echo $timer_data['durasi_menit']; ?>" required>
+        </div>
+
+        <div class="col-md-6 d-flex align-items-end">
+            <button type="submit" name="update_timer" class="btn btn-utn-primary">
+                <i class="fas fa-save me-1"></i>Simpan Waktu
+            </button>
+        </div>
+    </form>
+</div>
                             <!-- Pagination -->
                             <?php if($total_pages > 1): ?>
                             <nav aria-label="Page navigation" class="mt-4">
@@ -1146,12 +1192,13 @@ while($row = mysqli_fetch_assoc($kategori_result)) {
                         <?php endif; ?>
                     </div>
                 </div>
+                
             </div>
             
             <!-- Footer -->
-            <footer class="mt-4 pt-3 border-top text-center text-muted">
-                <p class="mb-0">&copy; <?php echo date('Y'); ?> PMB Universitas Teknologi Nusantara • Manajemen Soal Test</p>
-                <small>Total soal: <?php echo $total_soal; ?> • Terakhir diperbarui: <?php echo date('d/m/Y H:i'); ?></small>
+           <footer class="mt-4 pt-3 border-top text-center text-muted">
+                <p class="mb-0">PMB Universitas Arten</p>
+                <small>Terakhir diakses: <?php echo date('d/m/Y H:i'); ?></small>
             </footer>
         </div>
     </main>

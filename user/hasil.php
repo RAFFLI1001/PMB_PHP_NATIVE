@@ -33,8 +33,9 @@ $user = mysqli_fetch_assoc(mysqli_query($conn,"SELECT * FROM calon_mahasiswa WHE
 <div class="container-fluid">
 <div class="row">
 
-<!-- SIDEBAR -->
+<!-- SIDEBAR (SAMA PERSIS SEPERTI DASHBOARD) -->
 <div class="col-md-3 col-lg-2 sidebar d-md-block">
+
 <div class="position-sticky pt-4">
 
 <div class="text-center mb-4 px-3">
@@ -48,7 +49,7 @@ $user = mysqli_fetch_assoc(mysqli_query($conn,"SELECT * FROM calon_mahasiswa WHE
 
 </div>
 
-<h6 class="text-white"><?php echo $user['nama_lengkap']; ?></h6>
+<h6 class="text-white mb-1"><?php echo $user['nama_lengkap']; ?></h6>
 <small class="text-white-50"><?php echo $user['email']; ?></small>
 
 <div class="mt-2">
@@ -56,9 +57,9 @@ $user = mysqli_fetch_assoc(mysqli_query($conn,"SELECT * FROM calon_mahasiswa WHE
 </div>
 </div>
 
-<h6 class="text-white-50 px-3">MENU UTAMA</h6>
+<h6 class="text-white-50 mb-2 px-3">MENU UTAMA</h6>
 
-<ul class="nav flex-column px-2">
+<ul class="nav flex-column mb-4 px-2">
 
 <li class="nav-item">
 <a href="dashboard.php" class="nav-link">
@@ -68,7 +69,7 @@ $user = mysqli_fetch_assoc(mysqli_query($conn,"SELECT * FROM calon_mahasiswa WHE
 
 <li class="nav-item">
 <a href="profil.php" class="nav-link">
-<i class="fas fa-user me-2"></i>Profil Saya
+<i class="fas fa-user-edit me-2"></i>Profil Saya
 </a>
 </li>
 
@@ -87,7 +88,7 @@ $user = mysqli_fetch_assoc(mysqli_query($conn,"SELECT * FROM calon_mahasiswa WHE
 </ul>
 
 <div class="px-3 mt-4">
-<a href="../logout.php" class="btn btn-outline-light w-100 btn-sm">
+<a href="../logout.php" class="btn btn-sm btn-outline-light w-100">
 <i class="fas fa-sign-out-alt me-1"></i>Keluar
 </a>
 </div>
@@ -253,17 +254,21 @@ $badge = $data['status']=='lulus'?'success':($data['status']=='tidak_lulus'?'dan
 
 <style>
 
+/* SIDEBAR SAMA PERSIS DENGAN DASHBOARD */
 .sidebar{
 background:linear-gradient(180deg,#003366 0%,#002244 100%);
 height:100vh;
+position:sticky;
+top:0;
 }
 
+/* MENU */
 .sidebar .nav-link{
 color:rgba(255,255,255,0.85);
-padding:12px;
+padding:12px 16px;
 border-left:3px solid transparent;
-margin:4px 10px;
 border-radius:10px;
+margin:4px 10px;
 }
 
 .sidebar .nav-link:hover{
@@ -277,6 +282,7 @@ color:white;
 border-left-color:#28a745;
 }
 
+/* AVATAR */
 .avatar-container{
 width:90px;
 height:90px;
@@ -299,6 +305,7 @@ font-size:90px;
 color:white;
 }
 
+/* TOPBAR */
 .page-topbar{
 background:#fff;
 border-radius:14px;

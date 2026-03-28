@@ -515,7 +515,7 @@ $nilai_stats = mysqli_fetch_assoc(mysqli_query($conn,
                 </div>
                 <div class="admin-info">
                     <h5><?php echo $_SESSION['admin_nama'] ?? 'Administrator'; ?></h5>
-                    <p>Admin PMB Arten Campus</p>
+                    <p>Universitas Admin</p>
                 </div>
             </div>
         </div>
@@ -541,10 +541,7 @@ $nilai_stats = mysqli_fetch_assoc(mysqli_query($conn,
                 <i class="fas fa-check-double nav-icon"></i>
                 <span>Daftar Ulang</span>
             </a>
-            <a href="pengaturan.php" class="nav-link">
-                <i class="fas fa-cog nav-icon"></i>
-                <span>Pengaturan</span>
-            </a>
+            
             <a href="../logout.php" class="nav-link mt-4">
                 <i class="fas fa-sign-out-alt nav-icon"></i>
                 <span>Logout</span>
@@ -827,22 +824,7 @@ $nilai_stats = mysqli_fetch_assoc(mysqli_query($conn,
                     </div>
                     
                     <!-- Quick Actions -->
-                    <div class="dashboard-card">
-                        <h3 class="card-title">
-                            <i class="fas fa-bolt me-2"></i>Aksi Cepat
-                        </h3>
-                        <div class="d-grid gap-2">
-                            <a href="generate_laporan.php" class="btn btn-outline-primary">
-                                <i class="fas fa-file-alt me-2"></i>Generate Laporan
-                            </a>
-                            <a href="rekap_nilai.php" class="btn btn-outline-success">
-                                <i class="fas fa-chart-pie me-2"></i>Rekap Nilai
-                            </a>
-                            <a href="pengumuman.php" class="btn btn-outline-warning">
-                                <i class="fas fa-bullhorn me-2"></i>Buat Pengumuman
-                            </a>
-                        </div>
-                    </div>
+                    
                 </div>
                 
                 <!-- Right Column: Results Table -->
@@ -1004,11 +986,9 @@ $nilai_stats = mysqli_fetch_assoc(mysqli_query($conn,
             </div>
             
             <!-- Footer -->
-            <footer class="mt-4 pt-3 border-top text-center text-muted">
-                <p class="mb-0">&copy; <?php echo date('Y'); ?> PMB Universitas Teknologi Nusantara • Hasil Test Calon Mahasiswa</p>
-                <small>Rata-rata nilai: <?php echo number_format($nilai_stats['rata_rata'] ?? 0, 2); ?> • 
-                       Tingkat kelulusan: <?php echo $total_peserta > 0 ? round($total_lulus/$total_peserta*100, 1) : 0; ?>% • 
-                       Terakhir diperbarui: <?php echo date('d/m/Y H:i'); ?></small>
+           <footer class="mt-4 pt-3 border-top text-center text-muted">
+                <p class="mb-0">PMB Universitas Arten</p>
+                <small>Terakhir diakses: <?php echo date('d/m/Y H:i'); ?></small>
             </footer>
         </div>
     </main>
