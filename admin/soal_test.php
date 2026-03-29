@@ -610,7 +610,7 @@ if(isset($_POST['update_timer'])){
                 </div>
                 <div class="admin-info">
                     <h5><?php echo $_SESSION['admin_nama'] ?? 'Administrator'; ?></h5>
-                    <p>Universitas Admin</p>
+                    <p>Universitas Arten</p>
                 </div>
             </div>
         </div>

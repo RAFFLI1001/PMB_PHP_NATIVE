@@ -29,6 +29,8 @@ if ($has_registered) {
 } else {
     $has_daftar_ulang = false;
 }
+
+$nomor = !empty($user['nim']) ? $user['nim'] : $user['no_test'];
 ?>
 
 <?php $hideNavbar = true; // supaya navbar atas dari header.php tidak muncul ?>
@@ -185,11 +187,27 @@ if ($has_registered) {
                     <div class="card border-0 shadow-sm h-100">
                         <div class="card-body text-center">
                             <div class="mb-3"><i class="fas fa-id-card fa-3x text-primary"></i></div>
-                            <h5 class="card-title">No. Test</h5>
-                            <p class="card-text display-6">
-                                <?php echo $has_registered ? htmlspecialchars($data_pendaftaran['no_test']) : '---'; ?>
-                            </p>
-                            <small class="text-muted">Nomor identifikasi test</small>
+                            <h5 class="card-title">
+    <?php echo $has_daftar_ulang ? 'NIM' : 'No. Test'; ?>
+</h5>
+
+<p class="card-text display-6">
+    <?php 
+    if ($has_registered) {
+        if ($has_daftar_ulang) {
+            echo !empty($user['nim']) ? htmlspecialchars($user['nim']) : 'Belum ada';
+        } else {
+            echo htmlspecialchars($data_pendaftaran['no_test']);
+        }
+    } else {
+        echo '---';
+    }
+    ?>
+</p>
+
+<small class="text-muted">
+    <?php echo $has_daftar_ulang ? 'Nomor Induk Mahasiswa' : 'Nomor identifikasi test'; ?>
+</small>
                         </div>
                     </div>
                 </div>

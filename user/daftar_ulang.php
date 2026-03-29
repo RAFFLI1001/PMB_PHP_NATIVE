@@ -93,215 +93,482 @@ $upload_kk = uploadFile('upload_kk', $target_dir);
 
 // Validasi
 if (!$bukti_pembayaran) {
-    $error = "Upload bukti pembayaran gagal!";
+    $error = "Upload bukti pembayaran gagal! Pastikan file sesuai format (JPG, PNG, PDF) dan ukuran maksimal 5MB.";
     $upload_ok = false;
 }
 
 if (!$upload_ktp) {
-    $error = "Upload KTP / kartu pelajar gagal!";
+    $error = "Upload KTP / kartu pelajar gagal! Pastikan file sesuai format (JPG, PNG, PDF) dan ukuran maksimal 5MB.";
     $upload_ok = false;
 }
 
-if (!$upload_kk) {
-    echo "Error upload KK: ";
-    print_r($_FILES['upload_kk']);
-}
-    
-    if ($upload_ok) {
-        // Generate NIM (will be done by admin, but we insert with empty NIM first)
-      $query = "INSERT INTO daftar_ulang (
-    id_pendaftaran,
-    tanggal_daftar_ulang,
-    bukti_pembayaran,
-    upload_ktp,
-    upload_kk,
-    status_pembayaran
-) VALUES (
-    {$data['id_pendaftaran']},
-    CURDATE(),
-    '$bukti_pembayaran',
-    '$upload_ktp',
-    '$upload_kk',
-    'belum'
-)";
-        
-        if (mysqli_query($conn, $query)) {
-            $success = "Daftar ulang berhasil! Tunggu verifikasi dari admin untuk mendapatkan NIM.";
-            header("refresh:3;url=hasil.php");
-        } else {
-            $error = "Gagal menyimpan data: " . mysqli_error($conn);
-        }
+if ($upload_ok) {
+
+    // ========================
+    // GENERATE NIM OTOMATIS
+    // Format: Tahun + Kode Jurusan + Nomor Urut
+    // Contoh: 24110123
+    // ========================
+
+    $tahun = date('y'); // 24
+    $kode_jurusan = str_pad($data['id_jurusan'], 2, '0', STR_PAD_LEFT); // 01, 02, dll
+
+    // Ambil jumlah mahasiswa yang sudah daftar ulang di jurusan ini
+    $q = mysqli_query($conn, "
+        SELECT COUNT(*) as total 
+        FROM daftar_ulang du
+        JOIN pendaftaran p ON du.id_pendaftaran = p.id_pendaftaran
+        WHERE p.id_jurusan = {$data['id_jurusan']}
+    ");
+
+    $row = mysqli_fetch_assoc($q);
+    $urutan = $row['total'] + 1;
+
+    $nomor = str_pad($urutan, 4, '0', STR_PAD_LEFT); // 0001, 0002, dst
+
+    $nim = $tahun . $kode_jurusan . $nomor;
+
+    // ========================
+    // SIMPAN DATA DAFTAR ULANG
+    // ========================
+    $query = "INSERT INTO daftar_ulang (
+        id_pendaftaran,
+        tanggal_daftar_ulang,
+        bukti_pembayaran,
+        upload_ktp,
+        upload_kk,
+        status_pembayaran
+    ) VALUES (
+        {$data['id_pendaftaran']},
+        CURDATE(),
+        '$bukti_pembayaran',
+        '$upload_ktp',
+        '$upload_kk',
+        'belum'
+    )";
+
+    if (mysqli_query($conn, $query)) {
+
+        // ========================
+        // SIMPAN NIM KE TABEL USER
+        // ========================
+        mysqli_query($conn, "
+            UPDATE calon_mahasiswa 
+            SET nim = '$nim' 
+            WHERE id_calon = $user_id
+        ");
+
+        $success = "Daftar ulang berhasil! NIM Anda: <b>$nim</b>";
+        header("refresh:3;url=hasil.php");
+
+    } else {
+        $error = "Gagal menyimpan data: " . mysqli_error($conn);
     }
+}
+
+
 }
 ?>
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Daftar Ulang - Arten Campus</title>
-    <!-- Bootstrap CSS -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Daftar Ulang - Arten Campus | Verifikasi Kelulusan</title>
+    <!-- Bootstrap 5 + Icons + Modern Fonts -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Google Fonts: Poppins & Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            background-color: #f8f9fa;
-            padding-top: 20px;
+            background: linear-gradient(145deg, #f0f5fe 0%, #e9f0fa 100%);
+            font-family: 'Inter', sans-serif;
+            padding: 40px 0 60px 0;
+            min-height: 100vh;
         }
-        .card {
-            border-radius: 15px;
-            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+
+        .modern-card {
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 32px;
+            border: none;
+            box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.02);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            overflow: hidden;
         }
-        .badge {
-            padding: 8px 12px;
+
+        .modern-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 28px 40px -16px rgba(0, 0, 0, 0.12);
+        }
+
+        .card-header-gradient {
+            background: linear-gradient(135deg, #0B2B40 0%, #1A4A5F 100%);
+            padding: 1.4rem 2rem;
+            border-bottom: none;
+        }
+
+        .badge-modern {
+            background: rgba(255,255,240,0.15);
+            backdrop-filter: blur(4px);
+            padding: 8px 16px;
+            border-radius: 60px;
+            font-weight: 500;
+            font-size: 0.85rem;
+            letter-spacing: 0.3px;
+        }
+
+        .info-grid {
+            background: #F9FBFE;
+            border-radius: 28px;
+            padding: 1.5rem;
+            border: 1px solid rgba(0, 0, 0, 0.04);
+        }
+
+        .info-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            font-weight: 600;
+            color: #5b6e8c;
+            margin-bottom: 6px;
+        }
+
+        .info-value {
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: #0B2B40;
+            word-break: break-word;
+        }
+
+        .badge-score {
+            background: #0B2B40;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 60px;
+            font-weight: 600;
+            font-size: 1rem;
+            display: inline-block;
+        }
+
+        .payment-alert {
+            background: linear-gradient(120deg, #EFF9FF 0%, #E6F3FC 100%);
+            border-left: 5px solid #1E88E5;
+            border-radius: 24px;
+            padding: 1.4rem 1.8rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+        }
+
+        .bank-details {
+            background: white;
+            border-radius: 20px;
+            padding: 0.8rem 1.2rem;
+            font-family: monospace;
+            font-weight: 600;
+            border: 1px solid #e2edf2;
+            display: inline-block;
+        }
+
+        .upload-area {
+            border: 2px dashed #cbdbe0;
+            border-radius: 24px;
+            padding: 0.8rem 1rem;
+            transition: all 0.2s;
+            background: #ffffff;
+        }
+
+        .upload-area:hover {
+            border-color: #1A4A5F;
+            background: #FCFDFF;
+        }
+
+        .form-check-modern .form-check-input {
+            width: 1.2rem;
+            height: 1.2rem;
+            margin-top: 0.1rem;
+            border: 2px solid #bdc5d5;
+            cursor: pointer;
+        }
+
+        .form-check-modern .form-check-input:checked {
+            background-color: #1A4A5F;
+            border-color: #1A4A5F;
+        }
+
+        .btn-modern-primary {
+            background: linear-gradient(105deg, #0F3B4C 0%, #1C5D74 100%);
+            border: none;
+            padding: 14px 20px;
+            border-radius: 60px;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.2s;
+            box-shadow: 0 6px 14px rgba(27, 85, 106, 0.2);
+        }
+
+        .btn-modern-primary:hover {
+            background: linear-gradient(105deg, #0B2B40 0%, #144e62 100%);
+            transform: scale(1.01);
+            box-shadow: 0 10px 20px rgba(27, 85, 106, 0.25);
+        }
+
+        .btn-outline-modern {
+            border-radius: 60px;
+            padding: 12px 20px;
+            font-weight: 500;
+            border: 1.5px solid #cbdbe0;
+            color: #2c3e4e;
+        }
+
+        .btn-outline-modern:hover {
+            background: #F4F9FE;
+            border-color: #1A4A5F;
+            color: #1A4A5F;
+        }
+
+        .note-card {
+            background: #FFFBF0;
+            border-radius: 28px;
+            border: 1px solid #FFE6B3;
+        }
+
+        .note-icon {
+            background: #FFE3A4;
+            width: 40px;
+            height: 40px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 30px;
+            color: #9b6f0b;
+        }
+
+        hr.modern-hr {
+            background: linear-gradient(90deg, transparent, #cbdbe0, transparent);
+            height: 1px;
+            margin: 1rem 0;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 20px 12px;
+            }
+            .info-value {
+                font-size: 1rem;
+            }
+            .card-header-gradient h4 {
+                font-size: 1.3rem;
+            }
+        }
+
+        .file-hint {
+            font-size: 0.7rem;
+            color: #6f7c91;
+            margin-top: 6px;
+        }
+        
+        .required-star {
+            color: #dc3545;
+            margin-left: 3px;
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container py-4">
-        <div class="row justify-content-center">
-            <div class="col-md-8">
-                
-                <div class="card">
-                    <div class="card-header bg-success text-white">
-                        <h4 class="mb-0"><i class="fas fa-check-double me-2"></i>Form Daftar Ulang</h4>
+
+<div class="container py-2">
+    <div class="row justify-content-center">
+        <div class="col-lg-9 col-md-11 col-12">
+            <div class="modern-card fade-in">
+                <div class="card-header-gradient text-white">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                        <div>
+                            <h4 class="mb-0 fw-bold" style="font-family: 'Poppins', sans-serif;">
+                                <i class="fas fa-graduation-cap me-2"></i> Pendaftaran Ulang
+                            </h4>
+                            <p class="mb-0 mt-1 opacity-75 small">Konfirmasi kelulusan & verifikasi berkas</p>
+                        </div>
+                        <div class="badge-modern">
+                            <i class="fas fa-check-circle me-1"></i> Lulus Seleksi
+                        </div>
                     </div>
-                    <div class="card-body">
-                        <?php if(isset($success)): ?>
-                            <div class="alert alert-success">
-                                <h5><i class="fas fa-check-circle me-2"></i>Berhasil!</h5>
-                                <p><?php echo $success; ?></p>
-                                <p>Anda akan dialihkan ke halaman hasil dalam 3 detik...</p>
+                </div>
+
+                <div class="card-body p-4 p-xl-5">
+                    <?php if(isset($success)): ?>
+                        <div class="alert alert-success border-0 rounded-4 shadow-sm d-flex align-items-center" role="alert">
+                            <i class="fas fa-check-circle fa-2x me-3 text-success"></i>
+                            <div>
+                                <h5 class="alert-heading fw-bold mb-1">Pendaftaran Berhasil!</h5>
+                                <p class="mb-0"><?php echo htmlspecialchars($success); ?></p>
+                                <hr class="my-2">
+                                <p class="mb-0 small">⏳ Mengalihkan ke halaman hasil dalam 3 detik...</p>
                             </div>
-                        <?php else: ?>
-                        
+                        </div>
+                    <?php else: ?>
+                    
                         <?php if(isset($error)): ?>
-                            <div class="alert alert-danger"><?php echo $error; ?></div>
+                            <div class="alert alert-danger border-0 rounded-4 shadow-sm d-flex align-items-center">
+                                <i class="fas fa-exclamation-triangle fa-lg me-3"></i>
+                                <div><?php echo htmlspecialchars($error); ?></div>
+                            </div>
                         <?php endif; ?>
-                        
-                        <!-- Information Card -->
-                        <div class="card mb-4">
-                            <div class="card-body">
-                                <h5><i class="fas fa-info-circle me-2 text-primary"></i>Informasi Peserta</h5>
-                                <div class="row mt-3">
-                                    <div class="col-md-6">
-                                        <strong>Nama:</strong><br>
-                                        <?php echo $_SESSION['user_nama']; ?>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <strong>No. Test:</strong><br>
-                                        <?php echo $data['no_test']; ?>
-                                    </div>
-                                    <div class="col-md-6 mt-2">
-                                        <strong>Jurusan:</strong><br>
-                                        <?php echo $data['nama_jurusan']; ?>
-                                    </div>
-                                    <div class="col-md-6 mt-2">
-                                        <strong>Nilai Test:</strong><br>
-                                        <span class="badge bg-success fs-6"><?php echo number_format($data['nilai_test'], 2); ?></span>
+
+                        <!-- Info peserta dengan desain modern -->
+                        <div class="info-grid mb-4">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <div class="info-label"><i class="far fa-user-circle me-1"></i> Nama Lengkap</div>
+                                    <div class="info-value"><?php echo htmlspecialchars($_SESSION['user_nama'] ?? 'Tidak tersedia'); ?></div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="info-label"><i class="fas fa-qrcode me-1"></i> No. Test</div>
+                                    <div class="info-value"><?php echo htmlspecialchars($data['no_test'] ?? '-'); ?></div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="info-label"><i class="fas fa-book-open me-1"></i> Jurusan</div>
+                                    <div class="info-value"><?php echo htmlspecialchars($data['nama_jurusan'] ?? '-'); ?></div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="info-label"><i class="fas fa-chart-line me-1"></i> Nilai Test</div>
+                                    <div class="info-value">
+                                        <span class="badge-score">
+                                            <i class="fas fa-star me-1"></i> <?php echo isset($data['nilai_test']) ? number_format($data['nilai_test'], 2) : '-'; ?>
+                                        </span>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        
-                        <!-- Payment Information -->
-                        <div class="alert alert-info mb-4">
-                            <h5><i class="fas fa-credit-card me-2"></i>Informasi Pembayaran</h5>
-                            <p>Biaya daftar ulang: <strong>Rp 1.500.000</strong></p>
-                            <p>Transfer ke:<br>
-                               <strong>Bank BCA</strong><br>
-                               No. Rekening: <strong>123-456-7890</strong><br>
-                               Atas Nama: <strong>UNIVERSITAS TEKNOLOGI NUSANTARA</strong>
-                            </p>
-                            <p class="mb-0"><strong>Catatan:</strong> Upload bukti transfer yang jelas</p>
+
+                        <!-- Payment info elegant -->
+                        <div class="payment-alert mb-4 d-flex flex-wrap align-items-start gap-3">
+                            <div class="bg-white rounded-circle p-3 shadow-sm" style="width: 64px; height: 64px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-money-bill-wave fa-2x text-primary"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <h5 class="fw-bold mb-1" style="color:#0B2B40;"><i class="fas fa-credit-card me-1"></i> Informasi Pembayaran</h5>
+                                <p class="mb-2 fw-semibold">Biaya daftar ulang: <span class="fs-5 fw-bold text-dark">Rp 1.500.000</span></p>
+                                <div class="bank-details mt-2">
+                                    <i class="fas fa-university me-2 text-secondary"></i> Bank BCA &nbsp;|&nbsp; 
+                                    <span class="fw-bold">123-456-7890</span><br>
+                                    <small>a.n. <strong>Universitas Arten</strong></small>
+                                </div>
+                                <p class="mt-2 small text-muted mb-0"><i class="fas fa-info-circle"></i> Upload bukti transfer dengan data yang jelas (nama / no.rek)</p>
+                            </div>
                         </div>
-                        
-                        <!-- Registration Form -->
+
+                        <!-- Form Daftar Ulang -->
                         <form method="POST" action="" enctype="multipart/form-data">
-                            <div class="mb-4">
-                                <h5>Form Daftar Ulang</h5>
-                                
-                                <div class="mb-3">
-                                    <label class="form-label">Upload Bukti Pembayaran <span class="text-danger">*</span></label>
-                                    <input type="file" class="form-control" name="bukti_pembayaran" accept="image/*" required>
-                                    <small class="text-muted">Format: JPG, PNG, GIF (Maks. 2MB)</small>
+                            <h5 class="fw-bold mb-3" style="color:#0F3B4C;"><i class="fas fa-cloud-upload-alt me-2"></i>Upload Dokumen Persyaratan</h5>
+                            
+                            <div class="row g-4">
+                                <!-- Bukti Pembayaran -->
+                                <div class="col-md-12">
+                                    <div class="upload-area">
+                                        <label class="form-label fw-semibold">Bukti Pembayaran <span class="required-star">*</span></label>
+                                        <input type="file" class="form-control border-0 bg-transparent ps-0" name="bukti_pembayaran" accept="image/*,.pdf" required style="box-shadow: none;">
+                                        <div class="file-hint"><i class="fas fa-image me-1"></i> Format JPG, PNG, PDF (Maks. 5MB)</div>
+                                    </div>
                                 </div>
 
-                                <div class="mb-3">
-    <label class="form-label">Upload KTP / Kartu Pelajar <span class="text-danger">*</span></label>
-    <input type="file" class="form-control" name="upload_ktp" accept="image/*,.pdf" required>
-    <small class="text-muted">Format: JPG, PNG, PDF (Maks. 2MB)</small>
-</div>
+                                <div class="col-md-6">
+                                    <div class="upload-area">
+                                        <label class="form-label fw-semibold">KTP / Kartu Pelajar <span class="required-star">*</span></label>
+                                        <input type="file" class="form-control border-0 bg-transparent ps-0" name="upload_ktp" accept="image/*,.pdf" required style="box-shadow: none;">
+                                        <div class="file-hint"><i class="fas fa-id-card"></i> JPG, PNG, PDF (Maks. 5MB)</div>
+                                    </div>
+                                </div>
 
-<div class="mb-3">
-    <label class="form-label">Upload Kartu Keluarga (KK) <span class="text-danger">*</span></label>
-    <input type="file" class="form-control" name="upload_kk" accept="image/*,.pdf" required>
-    <small class="text-muted">Format: JPG, PNG, PDF (Maks. 2MB)</small>
-</div>
-                                
-                                <div class="mb-3">
-                                    <label class="form-label">Keterangan (Opsional)</label>
-                                    <textarea class="form-control" name="keterangan" rows="3" 
-                                              placeholder="Tambahkan keterangan jika diperlukan..."></textarea>
+                                <div class="col-md-6">
+                                    <div class="upload-area">
+                                        <label class="form-label fw-semibold">Kartu Keluarga (KK) <span class="required-star">*</span></label>
+                                        <input type="file" class="form-control border-0 bg-transparent ps-0" name="upload_kk" accept="image/*,.pdf" required style="box-shadow: none;">
+                                        <div class="file-hint"><i class="fas fa-users"></i> JPG, PNG, PDF (Maks. 5MB)</div>
+                                    </div>
                                 </div>
                             </div>
-                            
-                            <!-- Agreement -->
+
+                            <hr class="modern-hr my-4">
+
+                            <!-- Agreement checklist modern -->
                             <div class="mb-4">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="agree1" required>
+                                <h6 class="fw-semibold mb-3"><i class="fas fa-hand-peace me-2"></i>Persetujuan Pendaftaran Ulang</h6>
+                                <div class="form-check-modern d-flex gap-2 mb-2">
+                                    <input class="form-check-input mt-1" type="checkbox" id="agree1" required>
                                     <label class="form-check-label" for="agree1">
                                         Saya telah mentransfer biaya daftar ulang sesuai dengan nominal yang ditentukan
                                     </label>
                                 </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="agree2" required>
+                                <div class="form-check-modern d-flex gap-2 mb-2">
+                                    <input class="form-check-input mt-1" type="checkbox" id="agree2" required>
                                     <label class="form-check-label" for="agree2">
-                                        Saya bersedia mengikuti seluruh kegiatan akademik di Universitas Teknologi Nusantara
+                                        Saya bersedia mengikuti seluruh kegiatan akademik di Universitas Arten
                                     </label>
                                 </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="agree3" required>
+                                <div class="form-check-modern d-flex gap-2 mb-2">
+                                    <input class="form-check-input mt-1" type="checkbox" id="agree3" required>
                                     <label class="form-check-label" for="agree3">
                                         Saya menyetujui semua peraturan dan tata tertib yang berlaku
                                     </label>
                                 </div>
                             </div>
-                            
-                            <div class="d-grid gap-2">
-                                <button type="submit" class="btn btn-success btn-lg">
-                                    <i class="fas fa-paper-plane me-2"></i>Submit Daftar Ulang
+
+                            <div class="d-flex flex-column flex-sm-row gap-3 mt-4">
+                                <button type="submit" class="btn btn-modern-primary text-white px-4 py-3 flex-grow-1">
+                                    <i class="fas fa-paper-plane me-2"></i> Submit Daftar Ulang
                                 </button>
-                                <a href="hasil.php" class="btn btn-outline-secondary">Kembali ke Hasil</a>
+                                <a href="hasil.php" class="btn btn-outline-modern text-center px-4 py-3">
+                                    <i class="fas fa-arrow-left me-2"></i> Kembali ke Hasil
+                                </a>
                             </div>
                         </form>
-                        
-                        <?php endif; ?>
-                    </div>
+                    <?php endif; ?>
                 </div>
-                
-                <!-- Important Notes -->
-                <div class="card mt-4">
-                    <div class="card-header bg-warning">
-                        <h5 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Catatan Penting</h5>
-                    </div>
-                    <div class="card-body">
-                        <ul>
-                            <li>Daftar ulang hanya dapat dilakukan oleh peserta yang LULUS seleksi</li>
-                            <li>NIM akan diberikan setelah admin memverifikasi bukti pembayaran</li>
-                            <li>Proses verifikasi membutuhkan waktu 1-3 hari kerja</li>
-                            <li>Setelah daftar ulang, Anda resmi menjadi mahasiswa UTN</li>
-                            <li>Informasi perkuliahan akan dikirimkan via email setelah proses selesai</li>
-                        </ul>
+            </div>
+
+            <!-- Notes card modern -->
+            <div class="modern-card note-card mt-4">
+                <div class="card-body p-4">
+                    <div class="d-flex gap-3 align-items-start">
+                        <div class="note-icon">
+                            <i class="fas fa-clipboard-list fa-fw"></i>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold mb-2" style="color:#7a6300;"><i class="fas fa-exclamation-triangle me-2"></i>Catatan Penting</h5>
+                            <ul class="mb-0 ps-3 small" style="color: #4e3e0c;">
+                                <li class="mb-1">Daftar ulang hanya dapat dilakukan oleh peserta yang <strong class="text-dark">LULUS seleksi</strong></li>
+                                <li class="mb-1">NIM akan diberikan setelah admin memverifikasi bukti pembayaran (1-3 hari kerja)</li>
+                                <li class="mb-1">Setelah verifikasi, Anda resmi menjadi mahasiswa UTN dan akan mendapatkan informasi perkuliahan via email</li>
+                                <li class="mb-0">Pastikan file yang diupload jelas dan tidak melebihi batas ukuran 5MB</li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
-<?php include '../includes/footer.php'; ?>

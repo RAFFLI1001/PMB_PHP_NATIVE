@@ -499,7 +499,7 @@ $nilai_stats = mysqli_fetch_assoc(mysqli_query($conn,
         
         /* Export Buttons */
         .export-buttons .btn {
-            padding: 0.5rem 1rem;
+            padding: 0.5rem ;
             border-radius: 6px;
             font-size: 0.875rem;
         }
@@ -515,7 +515,7 @@ $nilai_stats = mysqli_fetch_assoc(mysqli_query($conn,
                 </div>
                 <div class="admin-info">
                     <h5><?php echo $_SESSION['admin_nama'] ?? 'Administrator'; ?></h5>
-                    <p>Universitas Admin</p>
+                    <p>Universitas Arten</p>
                 </div>
             </div>
         </div>
@@ -809,14 +809,14 @@ $nilai_stats = mysqli_fetch_assoc(mysqli_query($conn,
                             <h6 class="fw-medium mb-2">Ekspor Data</h6>
                             <div class="export-buttons">
                                 <a href="export_excel_hasil.php" class="btn btn-sm btn-outline-success me-2">
-    <i class="fas fa-file-excel me-1"></i>Excel
+    <i class="fas fa-file-excel me-2"></i>Excel
 </a>
 
 <button class="btn btn-sm btn-outline-danger me-2" onclick="exportToPDF()">
     <i class="fas fa-file-pdf me-1"></i>PDF
 </button>
 
-<button class="btn btn-sm btn-outline-primary" onclick="printTable()">
+<button class="btn btn-sm btn-outline-primary me-2" onclick="printTable()">
     <i class="fas fa-print me-1"></i>Print
 </button>
                             </div>

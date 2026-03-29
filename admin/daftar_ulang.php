@@ -103,15 +103,31 @@ $total_rows = mysqli_fetch_assoc($count_result)['total'];
 $total_pages = ceil($total_rows / $limit);
 
 // Get daftar ulang data
-$query = "SELECT du.*, p.no_test, p.nilai_test, p.tanggal_daftar, 
-                 cm.nama_lengkap, cm.email, cm.no_hp, cm.alamat, cm.asal_sekolah,
-                 j.nama_jurusan, j.kode_jurusan
+$query = "SELECT 
+            du.id_daftar_ulang,
+            du.no_induk_mahasiswa,
+            du.status_pembayaran,
+            du.bukti_pembayaran,
+            du.upload_ktp,
+            du.upload_kk,
+
+            p.no_test,
+
+            cm.nama_lengkap,
+            cm.email,
+            cm.asal_sekolah,
+            cm.nim,
+
+            j.nama_jurusan
+
           FROM daftar_ulang du
           JOIN pendaftaran p ON du.id_pendaftaran = p.id_pendaftaran
           JOIN calon_mahasiswa cm ON p.id_calon = cm.id_calon
           JOIN jurusan j ON p.id_jurusan = j.id_jurusan
+
           $where
-          ORDER BY du.tanggal_daftar_ulang DESC
+
+          ORDER BY du.id_daftar_ulang DESC
           LIMIT $limit OFFSET $offset";
 
 $result = mysqli_query($conn, $query);
@@ -304,7 +320,12 @@ $total_belum_daftar = $total_lulus - $total_daftar_ulang;
             padding: 1.5rem;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
             margin-bottom: 1.5rem;
+            overflow-x: auto;
         }
+
+        .dashboard-card table.data-table {
+    min-width: 1800px; /* Lebar minimum tabel agar memanjang */
+}
         
         .card-title {
             color: var(--utn-dark);
@@ -609,7 +630,7 @@ $total_belum_daftar = $total_lulus - $total_daftar_ulang;
                 </div>
                 <div class="admin-info">
                     <h5><?php echo $_SESSION['admin_nama'] ?? 'Administrator'; ?></h5>
-                    <p>Universitas Admin</p>
+                    <p>Universitas Arten</p>
                 </div>
             </div>
         </div>
@@ -769,130 +790,79 @@ $total_belum_daftar = $total_lulus - $total_daftar_ulang;
             <!-- Two Column Layout -->
             <div class="row">
                 <!-- Left Column: Search and Pending List -->
-                <div class="col-lg-5 mb-4">
-                    <!-- Search and Filter -->
-                    <div class="search-filter-card">
-                        <div class="row g-3">
-                            <div class="col-md-8">
-                                <input type="text" 
-                                       class="form-control" 
-                                       placeholder="Cari NIM, nama, atau no. test..."
-                                       value="<?php echo htmlspecialchars($search); ?>"
-                                       id="searchInput">
-                            </div>
-                            <div class="col-md-4">
-                                <select class="form-select" id="filterStatus">
-                                    <option value="">Semua Status</option>
-                                    <option value="lunas" <?php echo $filter_status == 'lunas' ? 'selected' : ''; ?>>Lunas</option>
-                                    <option value="belum" <?php echo $filter_status == 'belum' ? 'selected' : ''; ?>>Belum Bayar</option>
-                                </select>
-                            </div>
-                        </div>
-                        
-                        <!-- Filter Tags -->
-                        <?php if(!empty($search) || !empty($filter_status)): ?>
-                        <div class="mt-3">
-                            <small class="text-muted me-2">Filter aktif:</small>
-                            <?php if(!empty($search)): ?>
-                                <span class="filter-tag me-2">
-                                    <i class="fas fa-search"></i>
-                                    "<?php echo htmlspecialchars($search); ?>"
-                                    <a href="#" class="ms-1 text-danger clear-filter" data-filter="search">
-                                        <i class="fas fa-times"></i>
-                                    </a>
-                                </span>
-                            <?php endif; ?>
-                            <?php if(!empty($filter_status)): ?>
-                                <span class="filter-tag me-2">
-                                    <i class="fas fa-filter"></i>
-                                    Status: <?php echo $filter_status == 'lunas' ? 'Lunas' : 'Belum Bayar'; ?>
-                                    <a href="#" class="ms-1 text-danger clear-filter" data-filter="status">
-                                        <i class="fas fa-times"></i>
-                                    </a>
-                                </span>
-                            <?php endif; ?>
-                            <a href="daftar_ulang.php" class="btn btn-sm btn-outline-secondary">
-                                <i class="fas fa-redo me-1"></i>Reset Semua
-                            </a>
-                        </div>
-                        <?php endif; ?>
-                    </div>
                     
                     <!-- Belum Daftar Ulang -->
-                    <div class="dashboard-card">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h3 class="card-title mb-0">
-                                <i class="fas fa-exclamation-triangle text-warning me-2"></i>
-                                Belum Daftar Ulang
-                            </h3>
-                            <span class="badge bg-warning"><?php echo $total_belum_daftar; ?> orang</span>
-                        </div>
-                        
-                        <?php
-                        $query2 = "SELECT p.*, cm.nama_lengkap, j.nama_jurusan 
-                                  FROM pendaftaran p
-                                  JOIN calon_mahasiswa cm ON p.id_calon = cm.id_calon
-                                  JOIN jurusan j ON p.id_jurusan = j.id_jurusan
-                                  WHERE p.status = 'lulus' 
-                                  AND p.id_pendaftaran NOT IN (SELECT id_pendaftaran FROM daftar_ulang)
-                                  ORDER BY p.tanggal_daftar DESC
-                                  LIMIT 5";
-                        $result2 = mysqli_query($conn, $query2);
-                        ?>
-                        
-                        <?php if(mysqli_num_rows($result2) > 0): ?>
-                            <div class="quick-actions">
-                                <?php while($row2 = mysqli_fetch_assoc($result2)): ?>
-                                <div class="action-card" onclick="generateNIM(<?php echo $row2['id_pendaftaran']; ?>, '<?php echo htmlspecialchars($row2['nama_lengkap']); ?>')">
-                                    <i class="fas fa-id-card"></i>
-                                    <div class="action-label"><?php echo htmlspecialchars($row2['nama_lengkap']); ?></div>
-                                    <small class="text-muted"><?php echo $row2['nama_jurusan']; ?></small>
-                                </div>
-                                <?php endwhile; ?>
-                            </div>
-                            
-                            <?php if($total_belum_daftar > 5): ?>
-                            <div class="text-center mt-3">
-                                <a href="#belumDaftar" class="btn btn-sm btn-outline-warning">
-                                    Lihat <?php echo $total_belum_daftar - 5; ?> lainnya
-                                </a>
-                            </div>
-                            <?php endif; ?>
-                        <?php else: ?>
-                            <div class="empty-state py-4">
-                                <i class="fas fa-check-circle text-success"></i>
-                                <p class="mb-0">Semua yang lulus sudah didaftarkan</p>
-                            </div>
-                        <?php endif; ?>
-                    </div>
+                                
                     
                     <!-- Quick Actions -->
-                    <div class="dashboard-card">
-                        <h3 class="card-title">
-                            <i class="fas fa-bolt me-2"></i>Aksi Cepat
-                        </h3>
-                        <div class="d-grid gap-2">
-                            <button class="btn btn-outline-primary" onclick="exportToExcel()">
-                                <i class="fas fa-file-excel me-2"></i>Export Data
-                            </button>
-                            <a href="generate_kartu.php" class="btn btn-outline-info">
-                                <i class="fas fa-id-card me-2"></i>Generate Kartu Mahasiswa
-                            </a>
-                        </div>
-                    </div>
+                  
                 </div>
                 
                 <!-- Right Column: Daftar Ulang Table -->
-                <div class="col-lg-7 mb-4">
+                <div class="col-lg-15 mb-4">
                     <div class="dashboard-card">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h3 class="card-title mb-0">
-                                <i class="fas fa-list me-2"></i>Data Daftar Ulang
-                            </h3>
-                            <div class="text-muted">
-                                Menampilkan <?php echo min($limit, $total_rows - $offset); ?> dari <?php echo $total_rows; ?> data
-                            </div>
-                        </div>
+                       <!-- SEARCH & FILTER -->
+<form method="GET" class="row mb-3">
+
+    <div class="col-md-5">
+        <input type="text" name="search"
+               class="form-control"
+               placeholder="Cari nama / NIM / No Test..."
+               value="<?php echo htmlspecialchars($search); ?>">
+    </div>
+
+    <div class="col-md-3">
+        <select name="status" class="form-select">
+            <option value="">Semua Status</option>
+            <option value="lunas" <?php if($filter_status=='lunas') echo 'selected'; ?>>Lunas</option>
+            <option value="belum" <?php if($filter_status=='belum') echo 'selected'; ?>>Belum</option>
+        </select>
+    </div>
+
+    <div class="col-md-2">
+        <button class="btn btn-primary w-100">Cari</button>
+    </div>
+
+    <div class="col-md-2">
+        <a href="daftar_ulang.php" class="btn btn-secondary w-100">
+            <i class="fas fa-undo"></i>
+        </a>
+    </div>
+
+</form>
+
+
+<!-- HEADER TABEL -->
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+
+    <!-- KIRI -->
+    <div class="d-flex align-items-center gap-2">
+
+        <!-- Tombol Refresh -->
+      
+
+        <!-- Judul -->
+        <h3 class="card-title mb-0">
+            <i class="fas fa-list me-2"></i>Data Daftar Ulang
+        </h3>
+
+    </div>
+ <div class="d-flex align-items-center gap-2">
+
+        <!-- EXPORT -->
+        <a href="export_daftar_ulang.php?<?php echo http_build_query($_GET); ?>" 
+           class="btn btn-success btn-sm">
+            <i class="fas fa-file-excel me-1"></i> Export
+        </a>
+    <!-- KANAN -->
+    <div class="text-muted small">
+        Menampilkan 
+        <strong><?php echo ($total_rows > 0) ? min($limit, $total_rows - $offset) : 0; ?></strong> 
+        dari 
+        <strong><?php echo $total_rows; ?></strong> data
+    </div>
+
+</div>
                         
                         <?php if(mysqli_num_rows($result) > 0): ?>
                             <div class="table-responsive">
@@ -907,7 +877,6 @@ $total_belum_daftar = $total_lulus - $total_daftar_ulang;
             <th class="text-center">Bukti</th>
 <th class="text-center">KTP / Pelajar</th>
 <th class="text-center">Kartu Keluarga</th>
-            <th class="text-center pe-4">Aksi</th>
         </tr>
     </thead>
 
@@ -918,9 +887,9 @@ $total_belum_daftar = $total_lulus - $total_daftar_ulang;
         <tr>
             <!-- NIM -->
             <td class="ps-4">
-                <div class="fw-bold text-primary">
-                    <?php echo $row['no_induk_mahasiswa']; ?>
-                </div>
+               <div class="fw-bold text-primary">
+    <?php echo $row['nim']; ?>
+</div>
                 <small class="text-muted">No Test: <?php echo $row['no_test']; ?></small>
             </td>
 
@@ -1007,13 +976,7 @@ $total_belum_daftar = $total_lulus - $total_daftar_ulang;
 </td>
 
             <!-- AKSI -->
-            <td class="text-center pe-4">
-                <button class="btn btn-sm btn-primary"
-                        data-bs-toggle="modal"
-                        data-bs-target="#detailModal<?php echo $row['id_daftar_ulang']; ?>">
-                    Detail
-                </button>
-            </td>
+           
         </tr>
 
     <?php endwhile; ?>
