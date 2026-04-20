@@ -16,7 +16,9 @@ $query_params = [];
 
 if (isset($_GET['search']) && !empty($_GET['search'])) {
     $search = mysqli_real_escape_string($conn, $_GET['search']);
-    $where_conditions[] = "(cm.nama_lengkap LIKE '%$search%' OR cm.email LIKE '%$search%' OR p.no_test LIKE '%$search%')";
+    $where_conditions[] = "(cm.nama_lengkap LIKE '%$search%' 
+                        OR cm.email LIKE '%$search%' 
+                        OR cm.no_test LIKE '%$search%')";
     $query_params['search'] = $search;
 }
 
@@ -53,7 +55,7 @@ $total_rows = mysqli_fetch_assoc($count_result)['total'];
 $total_pages = ceil($total_rows / $limit);
 
 // Get results
-$query = "SELECT p.*, cm.nama_lengkap, cm.email, cm.no_hp, cm.asal_sekolah, 
+$query = "SELECT p.*, cm.nama_lengkap, cm.email, cm.no_hp, cm.asal_sekolah, cm.no_test,
                  j.nama_jurusan, j.kode_jurusan,
                  (SELECT COUNT(*) FROM daftar_ulang du WHERE du.id_pendaftaran = p.id_pendaftaran) as sudah_daftar_ulang
           FROM pendaftaran p
@@ -564,23 +566,7 @@ $nilai_stats = mysqli_fetch_assoc(mysqli_query($conn,
                         <h1 class="h3 mb-0">Hasil Test Calon Mahasiswa</h1>
                         <p class="text-muted mb-0">Analisis dan evaluasi hasil ujian masuk</p>
                     </div>
-                    <div class="d-flex align-items-center gap-3">
-                        <button class="btn btn-link text-dark p-0" title="Notifikasi">
-                            <i class="fas fa-bell"></i>
-                        </button>
-                        <div class="dropdown">
-                            <button class="btn btn-link text-dark text-decoration-none dropdown-toggle p-0" 
-                                    data-bs-toggle="dropdown">
-                                <i class="fas fa-user-shield me-2"></i>
-                                <?php echo $_SESSION['admin_nama'] ?? 'Admin'; ?>
-                            </button>
-                            <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="pengaturan.php"><i class="fas fa-cog me-2"></i> Pengaturan</a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="../logout.php"><i class="fas fa-sign-out-alt me-2"></i> Logout</a></li>
-                            </ul>
-                        </div>
-                    </div>
+              
                 </div>
             </div>
         </header>
@@ -849,7 +835,6 @@ $nilai_stats = mysqli_fetch_assoc(mysqli_query($conn,
                                             <th width="120">Jurusan</th>
                                             <th width="120">Nilai</th>
                                             <th width="100">Status</th>
-                                            <th width="80">Aksi</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -861,13 +846,11 @@ $nilai_stats = mysqli_fetch_assoc(mysqli_query($conn,
                                         ?>
                                         <tr>
                                             <td>
-                                                <span class="badge bg-light text-dark">#<?php echo $row['no_test']; ?></span>
+                                                <span class="badge bg-light text-dark"><?php echo $row['no_test']; ?></span>
                                             </td>
                                             <td>
                                                 <div class="fw-medium"><?php echo htmlspecialchars($row['nama_lengkap']); ?></div>
-                                                <small class="text-muted">
-                                                    <?php echo htmlspecialchars($row['email']); ?>
-                                                </small>
+                                                
                                             </td>
                                             <td>
                                                 <span class="badge bg-light text-dark">
@@ -897,11 +880,7 @@ $nilai_stats = mysqli_fetch_assoc(mysqli_query($conn,
                                             </td>
                                             <td>
                                                 <div class="d-flex">
-                                                    <button class="btn-action btn btn-sm btn-outline-info" 
-                                                            onclick="showDetail(<?php echo $row['id_pendaftaran']; ?>)"
-                                                            title="Detail">
-                                                        <i class="fas fa-eye"></i>
-                                                    </button>
+                                                 
                                                     <?php if($status == 'pending'): ?>
                                                     <button class="btn-action btn btn-sm btn-outline-success" 
                                                             onclick="updateStatus(<?php echo $row['id_pendaftaran']; ?>, 'lulus')"
@@ -914,12 +893,8 @@ $nilai_stats = mysqli_fetch_assoc(mysqli_query($conn,
                                                         <i class="fas fa-times"></i>
                                                     </button>
                                                     <?php elseif($status == 'lulus' && $row['sudah_daftar_ulang'] == 0): ?>
-                                                    <button class="btn-action btn btn-sm btn-outline-primary" 
-                                                            onclick="generateNIM(<?php echo $row['id_pendaftaran']; ?>)"
-                                                            title="Generate NIM">
-                                                        <i class="fas fa-id-card"></i>
-                                                    </button>
-                                                    <?php endif; ?>
+<!-- tombol generate NIM dihapus -->
+<?php endif; ?>
                                                 </div>
                                             </td>
                                         </tr>
@@ -1085,11 +1060,7 @@ $nilai_stats = mysqli_fetch_assoc(mysqli_query($conn,
             }
         }
         
-        function generateNIM(id) {
-            if (confirm('Generate NIM untuk peserta ini?')) {
-                window.location.href = `generate_nim.php?id=${id}`;
-            }
-        }
+        
         
         function exportToExcel() {
             alert('Export ke Excel (implementasi menggunakan PHPExcel atau library lain)');

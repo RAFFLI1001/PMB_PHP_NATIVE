@@ -93,6 +93,18 @@ if (isset($_POST['upload_foto'])) {
         $error = "Pilih foto terlebih dahulu";
     }
 }
+
+// ================== CEK PENDAFTARAN ==================
+$pendaftaran = mysqli_query($conn, "SELECT p.*, j.nama_jurusan 
+                                   FROM pendaftaran p
+                                   LEFT JOIN jurusan j ON p.id_jurusan = j.id_jurusan
+                                   WHERE p.id_calon = $user_id");
+
+$has_registered = mysqli_num_rows($pendaftaran) > 0;
+
+if ($has_registered) {
+    $data_pendaftaran = mysqli_fetch_assoc($pendaftaran);
+}
 ?>
 
 <?php $hideNavbar = true; ?>
@@ -101,101 +113,8 @@ if (isset($_POST['upload_foto'])) {
 <div class="container-fluid">
     <div class="row">
         <!-- Sidebar -->
-        <div class="col-md-3 col-lg-2 sidebar d-md-block">
-            <div class="position-sticky pt-4">
-                <!-- User Profile -->
-                <div class="text-center mb-4 px-3">
-                    <div class="avatar-container">
-
-                        <?php if (!empty($user['foto'])): ?>
-
-                            <img src="../uploads/profile/<?php echo $user['foto']; ?>">
-
-                        <?php else: ?>
-
-                            <i class="fas fa-user-circle"></i>
-
-                        <?php endif; ?>
-
-                    </div>
-                    <h6 class="text-white mb-1"><?php echo htmlspecialchars($user['nama_lengkap']); ?></h6>
-                    <small class="text-white-50"><?php echo htmlspecialchars($user['email']); ?></small>
-                    <div class="mt-2">
-                        <span class="badge bg-info">Calon Mahasiswa</span>
-                    </div>
-                </div>
-
-                <!-- Navigation Menu -->
-                <h6 class="text-white-50 mb-3 px-3">MENU UTAMA</h6>
-                <ul class="nav flex-column mb-4 px-2">
-                    <li class="nav-item">
-                        <a href="dashboard.php" class="nav-link">
-                            <i class="fas fa-tachometer-alt me-2"></i>Dashboard
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="profil.php" class="nav-link active">
-                            <i class="fas fa-user-edit me-2"></i>Profil Saya
-                        </a>
-                    </li>
-                     <li class="nav-item">
-                        <a href="pendaftaran.php" class="nav-link">
-                            <i class="fas fa-user-graduate me-2"></i>Pendaftaran
-                        </a>
-                    </li>
-
-                    <?php if ($has_registered): ?>
-
-                        <li class="nav-item">
-                            <a href="test.php" class="nav-link">
-                                <i class="fas fa-clipboard-list me-2"></i>Test Online
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="hasil.php" class="nav-link">
-                                <i class="fas fa-chart-line me-2"></i>Hasil Test
-                            </a>
-                        </li>
-                        <?php if ($has_registered && $data_pendaftaran['status'] == 'lulus'): ?>
-                            <li class="nav-item">
-                                <a href="daftar_ulang.php" class="nav-link">
-                                    <i class="fas fa-check-double me-2"></i>Daftar Ulang
-                                </a>
-                            </li>
-                        <?php endif; ?>
-                    <?php endif; ?>
-                </ul>
-
-                <!-- Profile Completion -->
-                <div class="card bg-dark border-0 mb-4 mx-3">
-                    <div class="card-body p-3">
-                        <h6 class="text-white mb-2">Kelengkapan Profil</h6>
-                        <div class="progress mb-2" style="height: 8px;">
-                            <?php
-                            $completion = 20; // Base for having account
-                            $completion += !empty($user['no_hp']) ? 10 : 0;
-                            $completion += !empty($user['jenis_kelamin']) ? 10 : 0;
-                            $completion += !empty($user['tempat_lahir']) ? 10 : 0;
-                            $completion += !empty($user['tanggal_lahir']) ? 10 : 0;
-                            $completion += !empty($user['alamat']) ? 10 : 0;
-                            $completion += !empty($user['asal_sekolah']) ? 10 : 0;
-                            $completion += !empty($user['jurusan_sekolah']) ? 10 : 0;
-                            $completion += !empty($user['tahun_lulus']) ? 10 : 0;
-                            ?>
-                            <div class="progress-bar bg-success" style="width: <?php echo $completion; ?>%"></div>
-                        </div>
-                        <small class="text-white-50"><?php echo $completion; ?>% lengkap</small>
-                    </div>
-                </div>
-
-                <!-- Logout -->
-                <div class="px-3 pb-4">
-                    <a href="../logout.php" class="btn btn-sm btn-outline-light w-100">
-                        <i class="fas fa-sign-out-alt me-1"></i>Keluar
-                    </a>
-                </div>
-            </div>
-        </div>
+        <?php $current_page = 'profil'; ?>
+<?php include '../includes/sidebar_user.php'; ?>
 
         <!-- Main Content -->
         <div class="col-md-9 col-lg-10 ms-sm-auto px-md-4 py-3">
@@ -719,165 +638,7 @@ if (isset($_POST['upload_foto'])) {
 </script>
 
 <style>
-    /* Sidebar Styles */
-    /* Sidebar */
-    .sidebar {
-        background: linear-gradient(180deg, #003366 0%, #002244 100%);
-        height: 100vh;
-        position: sticky;
-        top: 0;
-    }
-
-    /* Scroll jika menu panjang */
-
-
-    /* Menu */
-    .sidebar .nav-link {
-        color: rgba(255, 255, 255, 0.85);
-        padding: 12px 16px;
-        border-left: 3px solid transparent;
-        border-radius: 10px;
-        margin: 4px 10px;
-        transition: all .2s ease;
-    }
-
-    .sidebar .nav-link:hover {
-        color: white;
-        background: rgba(255, 255, 255, 0.1);
-        border-left-color: #28a745;
-    }
-
-    .sidebar .nav-link.active {
-        color: white;
-        background: rgba(255, 255, 255, 0.15);
-        border-left-color: #28a745;
-    }
-
-    /* Avatar Styles */
-    .avatar-container {
-        width: 90px;
-        height: 90px;
-        border-radius: 50%;
-        overflow: hidden;
-        margin: auto;
-        position: relative;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .avatar-container img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
-
-    .avatar-container i {
-        font-size: 90px;
-        color: white;
-    }
-
-    /* Compact Topbar Header */
-    .page-topbar {
-        background: #fff;
-        border: 1px solid rgba(0, 0, 0, .06);
-        border-radius: 14px;
-        padding: 14px 16px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-        box-shadow: 0 10px 26px rgba(16, 24, 40, .06);
-    }
-
-    .page-icon {
-        width: 42px;
-        height: 42px;
-        border-radius: 12px;
-        background: rgba(13, 110, 253, .10);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #0d6efd;
-        font-size: 18px;
-    }
-
-    .page-title {
-        font-size: 18px;
-        font-weight: 800;
-        line-height: 1.1;
-    }
-
-    .page-subtitle {
-        font-size: 13px;
-        color: #6c757d;
-        margin-top: 2px;
-    }
-
-    @media (max-width: 768px) {
-        .page-topbar {
-            flex-direction: column;
-            align-items: flex-start;
-        }
-    }
-
-    /* Card header gradients */
-    .bg-gradient-primary {
-        background: linear-gradient(135deg, #003366 0%, #00509e 100%);
-    }
-
-    .bg-gradient-warning {
-        background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
-    }
-
-    .bg-gradient-info {
-        background: linear-gradient(135deg, #17a2b8 0%, #20c997 100%);
-    }
-
-    /* Form focus */
-    .form-control:focus,
-    .form-select:focus {
-        border-color: #86b7fe;
-        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
-    }
-
-    /* Responsive */
-    @media (max-width: 768px) {
-        .sidebar {
-            min-height: auto;
-            margin-bottom: 20px;
-        }
-
-        .btn-lg {
-            padding: 0.5rem 1rem;
-            font-size: 1rem;
-        }
-    }
-
-    .profile-avatar {
-        width: 120px;
-        height: 120px;
-        border-radius: 50%;
-        overflow: hidden;
-        margin: auto;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: #f5f5f5;
-        border: 4px solid #fff;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    }
-
-    .profile-avatar img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
-
-    .profile-avatar i {
-        font-size: 120px;
-        color: #bbb;
-    }
+   
 </style>
 
 <?php include '../includes/footer.php'; ?>

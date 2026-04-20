@@ -1,7 +1,6 @@
 <?php
 require_once '../config/database.php';
 
-// Check if user is logged in
 session_start();
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'user') {
     header("Location: index.php");
@@ -10,11 +9,11 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'user') {
 
 $user_id = $_SESSION['user_id'];
 
-// Check if user has passed the test
-$query = "SELECT p.*, j.nama_jurusan, 
-          (SELECT COUNT(*) FROM daftar_ulang du WHERE du.id_pendaftaran = p.id_pendaftaran) as sudah_daftar_ulang
+$query = "SELECT p.*, j.nama_jurusan, du.status_verifikasi,
+          (SELECT COUNT(*) FROM daftar_ulang du2 WHERE du2.id_pendaftaran = p.id_pendaftaran) as sudah_daftar_ulang
           FROM pendaftaran p
           JOIN jurusan j ON p.id_jurusan = j.id_jurusan
+          LEFT JOIN daftar_ulang du ON du.id_pendaftaran = p.id_pendaftaran
           WHERE p.id_calon = $user_id AND p.status = 'lulus'";
 
 $result = mysqli_query($conn, $query);
@@ -26,95 +25,51 @@ if (mysqli_num_rows($result) == 0) {
 
 $data = mysqli_fetch_assoc($result);
 
-// Check if already registered for daftar ulang
 if ($data['sudah_daftar_ulang'] > 0) {
     header("Location: hasil.php");
     exit();
 }
 
-// Handle form submission
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-// ================= UPLOAD FILE =================
-$upload_ok = true;
-$bukti_pembayaran = '';
-$upload_ktp = '';
-$upload_kk = '';
 
+$upload_ok = true;
 $target_dir = "../assets/uploads/daftar_ulang/";
 
-// Buat folder jika belum ada
 if (!file_exists($target_dir)) {
     mkdir($target_dir, 0777, true);
 }
 
-// Fungsi upload
-function uploadFile($input_name, $target_dir) {
+function uploadFile($name, $dir){
+    if($_FILES[$name]['error'] != 0) return false;
 
-    if (!isset($_FILES[$input_name])) {
-        return false;
-    }
+    $ext = strtolower(pathinfo($_FILES[$name]['name'], PATHINFO_EXTENSION));
+    $allowed = ['jpg','jpeg','png','pdf'];
 
-    if ($_FILES[$input_name]['error'] != 0) {
-        return false;
-    }
+    if(!in_array($ext,$allowed)) return false;
+    if($_FILES[$name]['size'] > 5000000) return false;
 
-    $file_name = time() . '_' . basename($_FILES[$input_name]['name']);
-    $target_file = $target_dir . $file_name;
+    $filename = time().'_'.$_FILES[$name]['name'];
 
-    $imageFileType = strtolower(pathinfo($target_file, PATHINFO_EXTENSION));
-
-    // Format yang diizinkan
-    $allowed_types = ['jpg', 'jpeg', 'png', 'pdf'];
-
-    if (!in_array($imageFileType, $allowed_types)) {
-        return false;
-    }
-
-    // Maks 5MB (biar KK aman)
-    if ($_FILES[$input_name]['size'] > 5000000) {
-        return false;
-    }
-
-    if (move_uploaded_file($_FILES[$input_name]['tmp_name'], $target_file)) {
-        return $file_name;
+    if(move_uploaded_file($_FILES[$name]['tmp_name'],$dir.$filename)){
+        return $filename;
     }
 
     return false;
 }
 
-// Upload bukti pembayaran
-$bukti_pembayaran = uploadFile('bukti_pembayaran', $target_dir);
+$bukti = uploadFile('bukti_pembayaran',$target_dir);
+$ktp   = uploadFile('upload_ktp',$target_dir);
+$kk    = uploadFile('upload_kk',$target_dir);
 
-// Upload KTP / kartu pelajar
-$upload_ktp = uploadFile('upload_ktp', $target_dir);
+if(!$bukti || !$ktp || !$kk){
+    $error = "Semua file wajib diupload (JPG / PNG / PDF max 5MB)";
+}else{
 
-// Upload KK
-$upload_kk = uploadFile('upload_kk', $target_dir);
+    // ===== GENERATE NIM =====
+    $tahun = date('y');
+    $kode_jurusan = str_pad($data['id_jurusan'],2,'0',STR_PAD_LEFT);
 
-// Validasi
-if (!$bukti_pembayaran) {
-    $error = "Upload bukti pembayaran gagal! Pastikan file sesuai format (JPG, PNG, PDF) dan ukuran maksimal 5MB.";
-    $upload_ok = false;
-}
-
-if (!$upload_ktp) {
-    $error = "Upload KTP / kartu pelajar gagal! Pastikan file sesuai format (JPG, PNG, PDF) dan ukuran maksimal 5MB.";
-    $upload_ok = false;
-}
-
-if ($upload_ok) {
-
-    // ========================
-    // GENERATE NIM OTOMATIS
-    // Format: Tahun + Kode Jurusan + Nomor Urut
-    // Contoh: 24110123
-    // ========================
-
-    $tahun = date('y'); // 24
-    $kode_jurusan = str_pad($data['id_jurusan'], 2, '0', STR_PAD_LEFT); // 01, 02, dll
-
-    // Ambil jumlah mahasiswa yang sudah daftar ulang di jurusan ini
-    $q = mysqli_query($conn, "
+    $q = mysqli_query($conn,"
         SELECT COUNT(*) as total 
         FROM daftar_ulang du
         JOIN pendaftaran p ON du.id_pendaftaran = p.id_pendaftaran
@@ -122,50 +77,47 @@ if ($upload_ok) {
     ");
 
     $row = mysqli_fetch_assoc($q);
-    $urutan = $row['total'] + 1;
+    $nomor = str_pad($row['total']+1,4,'0',STR_PAD_LEFT);
 
-    $nomor = str_pad($urutan, 4, '0', STR_PAD_LEFT); // 0001, 0002, dst
+    $nim = $tahun.$kode_jurusan.$nomor;
 
-    $nim = $tahun . $kode_jurusan . $nomor;
+    // ===== INSERT DATA =====
+    $insert = mysqli_query($conn,"
+        INSERT INTO daftar_ulang(
+            id_pendaftaran,
+            tanggal_daftar_ulang,
+            bukti_pembayaran,
+            upload_ktp,
+            upload_kk,
+            status_pembayaran,
+            status_verifikasi
+        ) VALUES(
+            {$data['id_pendaftaran']},
+            CURDATE(),
+            '$bukti',
+            '$ktp',
+            '$kk',
+            'lunas',
+            'menunggu'
+        )
+    ");
 
-    // ========================
-    // SIMPAN DATA DAFTAR ULANG
-    // ========================
-    $query = "INSERT INTO daftar_ulang (
-        id_pendaftaran,
-        tanggal_daftar_ulang,
-        bukti_pembayaran,
-        upload_ktp,
-        upload_kk,
-        status_pembayaran
-    ) VALUES (
-        {$data['id_pendaftaran']},
-        CURDATE(),
-        '$bukti_pembayaran',
-        '$upload_ktp',
-        '$upload_kk',
-        'belum'
-    )";
+    if($insert){
 
-    if (mysqli_query($conn, $query)) {
-
-        // ========================
-        // SIMPAN NIM KE TABEL USER
-        // ========================
-        mysqli_query($conn, "
+        mysqli_query($conn,"
             UPDATE calon_mahasiswa 
-            SET nim = '$nim' 
-            WHERE id_calon = $user_id
+            SET nim='$nim'
+            WHERE id_calon=$user_id
         ");
 
         $success = "Daftar ulang berhasil! NIM Anda: <b>$nim</b>";
         header("refresh:3;url=hasil.php");
 
-    } else {
-        $error = "Gagal menyimpan data: " . mysqli_error($conn);
+    }else{
+        $error = "Gagal menyimpan data!";
     }
-}
 
+}
 
 }
 ?>
@@ -415,6 +367,28 @@ if ($upload_ok) {
                 </div>
 
                 <div class="card-body p-4 p-xl-5">
+                    <?php if(isset($data['status_verifikasi'])): ?>
+
+    <?php if($data['status_verifikasi'] == 'menunggu'): ?>
+        <div class="alert alert-warning border-0 rounded-4 shadow-sm mb-4">
+            <i class="fas fa-clock me-2"></i>
+            Bukti pembayaran sudah diupload. <b>Menunggu verifikasi admin.</b>
+        </div>
+
+    <?php elseif($data['status_verifikasi'] == 'disetujui'): ?>
+        <div class="alert alert-success border-0 rounded-4 shadow-sm mb-4">
+            <i class="fas fa-check-circle me-2"></i>
+            Pembayaran sudah diverifikasi admin.
+        </div>
+
+    <?php elseif($data['status_verifikasi'] == 'ditolak'): ?>
+        <div class="alert alert-danger border-0 rounded-4 shadow-sm mb-4">
+            <i class="fas fa-times-circle me-2"></i>
+            Bukti pembayaran ditolak, silakan upload ulang.
+        </div>
+    <?php endif; ?>
+
+<?php endif; ?>
                     <?php if(isset($success)): ?>
                         <div class="alert alert-success border-0 rounded-4 shadow-sm d-flex align-items-center" role="alert">
                             <i class="fas fa-check-circle fa-2x me-3 text-success"></i>

@@ -24,8 +24,16 @@ if ($has_registered) {
 
 // Check if already did daftar ulang
 if ($has_registered) {
-    $daftar_ulang_query = mysqli_query($conn, "SELECT * FROM daftar_ulang WHERE id_pendaftaran = {$data_pendaftaran['id_pendaftaran']}");
+    $daftar_ulang_query = mysqli_query($conn, "
+        SELECT * FROM daftar_ulang 
+        WHERE id_pendaftaran = {$data_pendaftaran['id_pendaftaran']}
+    ");
+    
     $has_daftar_ulang = mysqli_num_rows($daftar_ulang_query) > 0;
+
+    if ($has_daftar_ulang) {
+        $data_daftar_ulang = mysqli_fetch_assoc($daftar_ulang_query);
+    }
 } else {
     $has_daftar_ulang = false;
 }
@@ -40,85 +48,8 @@ $nomor = !empty($user['nim']) ? $user['nim'] : $user['no_test'];
     <div class="row">
 
         <!-- Sidebar -->
-        <div class="col-md-3 col-lg-2 sidebar d-md-block">
-            <div class="position-sticky pt-4">
-                <!-- User Profile -->
-                <div class="text-center mb-4 px-3">
-                    <div class="mb-3 avatar-container">
-
-                        <?php if (!empty($user['foto'])): ?>
-
-                            <img src="../uploads/profile/<?php echo $user['foto']; ?>">
-
-                        <?php else: ?>
-
-                            <i class="fas fa-user-circle"></i>
-
-                        <?php endif; ?>
-
-                    </div>
-                    <h6 class="text-white mb-1"><?php echo htmlspecialchars($user['nama_lengkap']); ?></h6>
-                    <small class="text-white-50"><?php echo htmlspecialchars($user['email']); ?></small>
-                    <div class="mt-2">
-                        <span class="badge bg-info">Calon Mahasiswa</span>
-                    </div>
-                </div>
-
-                <!-- Navigation Menu -->
-                <h6 class="text-white-50 mb-2 px-3">MENU UTAMA</h6>
-                <ul class="nav flex-column mb-4 px-2">
-                    <li class="nav-item">
-                        <a href="dashboard.php" class="nav-link active">
-                            <i class="fas fa-tachometer-alt me-2"></i>Dashboard
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="profil.php" class="nav-link">
-                            <i class="fas fa-user-edit me-2"></i>Profil Saya
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="pendaftaran.php" class="nav-link">
-                            <i class="fas fa-user-graduate me-2"></i>Pendaftaran
-                        </a>
-                    </li>
-
-                    <?php if ($has_registered): ?>
-        
-                        <li class="nav-item">
-                            <a href="test.php" class="nav-link">
-                                <i class="fas fa-clipboard-list me-2"></i>Test Online
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="hasil.php" class="nav-link">
-                                <i class="fas fa-chart-line me-2"></i>Hasil Test
-                            </a>
-                        </li>
-                        <?php if ($data_pendaftaran['status'] == 'lulus' && !$has_daftar_ulang): ?>
-                            <li class="nav-item">
-                                <a href="daftar_ulang.php" class="nav-link">
-                                    <i class="fas fa-check-double me-2"></i>Daftar Ulang
-                                </a>
-                            </li>
-                        <?php endif; ?>
-                    <?php endif; ?>
-                </ul>
-
-                <!-- Quick Actions -->
-              
-
-                <!-- Logout -->
-                <div class="px-3 mt-4">
-                    <a href="../logout.php" class="btn btn-sm btn-outline-light w-100">
-                        <i class="fas fa-sign-out-alt me-1"></i>Keluar
-                    </a>
-                </div>
-
-                <!-- Footer -->
-                
-            </div>
-        </div>
+      <?php $current_page = 'dashboard'; ?>
+<?php include '../includes/sidebar_user.php'; ?>
 
         <!-- Main Content -->
         <!-- padding dibuat lebih kecil biar header tidak tinggi -->
@@ -180,7 +111,28 @@ $nomor = !empty($user['nim']) ? $user['nim'] : $user['no_test'];
                     </div>
                 </div>
             </div>
+                                        <?php if ($has_daftar_ulang): ?>
+    <div class="mt-3">
+        <?php if ($data_daftar_ulang['status_verifikasi'] == 'diterima'): ?>
+            <span class="badge bg-success fs-6">
+                <i class="fas fa-check-circle me-1"></i>
+                Verifikasi Sudah Diterima
+            </span>
 
+        <?php elseif ($data_daftar_ulang['status_verifikasi'] == 'ditolak'): ?>
+            <span class="badge bg-danger fs-6">
+                <i class="fas fa-times-circle me-1"></i>
+                Verifikasi Ditolak
+            </span>
+
+        <?php else: ?>
+            <span class="badge bg-warning fs-6">
+                <i class="fas fa-clock me-1"></i>
+                Menunggu Verifikasi Admin
+            </span>
+        <?php endif; ?>
+    </div>
+<?php endif; ?>
             <!-- Statistics Cards -->
             <div class="row mb-4">
                 <div class="col-md-3 mb-3">
@@ -188,25 +140,21 @@ $nomor = !empty($user['nim']) ? $user['nim'] : $user['no_test'];
                         <div class="card-body text-center">
                             <div class="mb-3"><i class="fas fa-id-card fa-3x text-primary"></i></div>
                             <h5 class="card-title">
-    <?php echo $has_daftar_ulang ? 'NIM' : 'No. Test'; ?>
+    <?php echo !empty($user['nim']) ? 'NIM' : 'No. Test'; ?>
 </h5>
 
 <p class="card-text display-6">
     <?php 
-    if ($has_registered) {
-        if ($has_daftar_ulang) {
-            echo !empty($user['nim']) ? htmlspecialchars($user['nim']) : 'Belum ada';
-        } else {
-            echo htmlspecialchars($data_pendaftaran['no_test']);
-        }
+    if (!empty($user['nim'])) {
+        echo htmlspecialchars($user['nim']);
     } else {
-        echo '---';
+        echo htmlspecialchars($user['no_test']);
     }
     ?>
 </p>
 
 <small class="text-muted">
-    <?php echo $has_daftar_ulang ? 'Nomor Induk Mahasiswa' : 'Nomor identifikasi test'; ?>
+    <?php echo !empty($user['nim']) ? 'Nomor Induk Mahasiswa' : 'Nomor identifikasi test'; ?>
 </small>
                         </div>
                     </div>
@@ -379,62 +327,7 @@ $nomor = !empty($user['nim']) ? $user['nim'] : $user['no_test'];
 </div>
 
 <style>
-    /* Sidebar Styles */
-    /* Sidebar */
-    .sidebar {
-        background: linear-gradient(180deg, #003366 0%, #002244 100%);
-        height: 100vh;
-        position: sticky;
-        top: 0;
-    }
-
-    /* Scroll jika menu panjang */
   
-
-    /* Menu */
-    .sidebar .nav-link {
-        color: rgba(255, 255, 255, 0.85);
-        padding: 12px 16px;
-        border-left: 3px solid transparent;
-        border-radius: 10px;
-        margin: 4px 10px;
-        transition: all .2s ease;
-    }
-
-    .sidebar .nav-link:hover {
-        color: white;
-        background: rgba(255, 255, 255, 0.1);
-        border-left-color: #28a745;
-    }
-
-    .sidebar .nav-link.active {
-        color: white;
-        background: rgba(255, 255, 255, 0.15);
-        border-left-color: #28a745;
-    }
-
-    .avatar-container {
-        width: 90px;
-        height: 90px;
-        border-radius: 50%;
-        overflow: hidden;
-        margin: auto;
-        position: relative;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .avatar-container img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
-
-    .avatar-container i {
-        font-size: 90px;
-        color: white;
-    }
 
     /* Compact Topbar Header */
     .page-topbar {

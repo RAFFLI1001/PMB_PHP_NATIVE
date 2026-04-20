@@ -1,30 +1,23 @@
 <?php
 require_once '../config/database.php';
 
-// Inisialisasi variabel error
-$error = '';
+$error   = '';
 $success = '';
 
-// Cek jika form sudah disubmit
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $username = mysqli_real_escape_string($conn, $_POST['username']);
     $password = md5($_POST['password']);
-    
-    // Query untuk cek admin
-    $query = "SELECT * FROM admin WHERE username='$username' AND password='$password'";
+
+    $query  = "SELECT * FROM admin WHERE username='$username' AND password='$password'";
     $result = mysqli_query($conn, $query);
-    
+
     if (mysqli_num_rows($result) == 1) {
         $admin = mysqli_fetch_assoc($result);
-        
-        // Set session
         session_start();
-        $_SESSION['admin_id'] = $admin['id_admin'];
+        $_SESSION['admin_id']   = $admin['id_admin'];
         $_SESSION['admin_nama'] = $admin['nama_lengkap'];
-        $_SESSION['role'] = 'admin';
+        $_SESSION['role']       = 'admin';
         $_SESSION['last_login'] = time();
-        
-        // Redirect ke dashboard
         header("Location: dashboard.php");
         exit();
     } else {
@@ -35,215 +28,499 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Login Admin - PMB UTN</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Admin — PMB Universitas Arten</title>
 
-<style>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
 
-/* ================= GLOBAL ================= */
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-}
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-body{
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background:#f4f6f9;
-    min-height:100vh;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-}
+        :root {
+            --navy:   #003366;
+            --navy2:  #1A2B4D;
+            --accent: #1A4A8A;
+            --gold:   #C9A84C;
+            --light:  #F8FAFC;
+            --muted:  #64748B;
+            --border: #E2E8F0;
+            --danger: #DC2626;
+        }
 
-/* ================= CONTAINER ================= */
-.login-wrapper{
-    width:100%;
-    max-width:420px;
-    padding:20px;
-}
+        html, body {
+            height: 100%;
+            font-family: 'Inter', sans-serif;
+            background: #EEF2F7;
+        }
 
-/* ================= CARD ================= */
-.login-card{
-    width:100%;
-    background:#ffffff;
-    border-radius:22px;
-    overflow:hidden;
-    box-shadow:0 20px 50px rgba(0,0,0,0.15);
-    animation:fadeUp 0.7s ease;
-}
+        /* ── Layout ── */
+        .page {
+            min-height: 100vh;
+            display: flex;
+        }
 
-/* ================= HEADER ================= */
-.login-header{
-    background:linear-gradient(135deg,#dc3545,#c82333);
-    color:white;
-    text-align:center;
-    padding:35px 20px;
-}
+        /* ── Left panel ── */
+        .panel-left {
+            width: 55%;
+            background: linear-gradient(160deg, var(--navy) 0%, var(--navy2) 60%, #0D1B33 100%);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 3rem;
+            overflow: hidden;
+        }
 
-.login-title{
-    font-size:28px;
-    font-weight:700;
-    margin-bottom:6px;
-}
+        /* decorative circles */
+        .panel-left::before {
+            content: '';
+            position: absolute;
+            width: 420px; height: 420px;
+            border-radius: 50%;
+            border: 1px solid rgba(255,255,255,.07);
+            top: -100px; left: -100px;
+        }
+        .panel-left::after {
+            content: '';
+            position: absolute;
+            width: 300px; height: 300px;
+            border-radius: 50%;
+            border: 1px solid rgba(255,255,255,.07);
+            bottom: -80px; right: -80px;
+        }
 
-.login-subtitle{
-    font-size:14px;
-    opacity:0.9;
-}
+        .circle-mid {
+            position: absolute;
+            width: 600px; height: 600px;
+            border-radius: 50%;
+            border: 1px solid rgba(255,255,255,.04);
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+        }
 
-/* ================= BODY ================= */
-.login-body{
-    padding:30px 25px 25px;
-}
+        .panel-brand {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            max-width: 400px;
+        }
 
-/* ================= FORM ================= */
-.form-group{
-    margin-bottom:18px;
-}
+        .brand-emblem {
+            width: 90px; height: 90px;
+            border-radius: 50%;
+            background: rgba(255,255,255,.08);
+            border: 2px solid var(--gold);
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 1.5rem;
+            font-size: 2.2rem;
+            color: var(--gold);
+        }
 
-.form-label{
-    font-size:14px;
-    font-weight:600;
-    color:#1a2b4d;
-    margin-bottom:6px;
-    display:block;
-}
+        .brand-name {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            color: #ffffff;
+            line-height: 1.2;
+            margin-bottom: .5rem;
+        }
 
-.form-control{
-    width:100%;
-    padding:14px 15px;
-    border-radius:14px;
-    border:2px solid #e2e8f0;
-    font-size:15px;
-    transition:0.3s;
-}
+        .brand-tagline {
+            font-size: .85rem;
+            color: rgba(255,255,255,.55);
+            letter-spacing: .06em;
+            text-transform: uppercase;
+            margin-bottom: 2.5rem;
+        }
 
-.form-control:focus{
-    outline:none;
-    border-color:#003366;
-}
+        .brand-divider {
+            width: 50px; height: 2px;
+            background: var(--gold);
+            margin: 0 auto 2rem;
+            border-radius: 2px;
+        }
 
-/* ================= BUTTON ================= */
-.btn-login{
-    width:100%;
-    padding:14px;
-    background:linear-gradient(135deg,#dc3545,#c82333);
-    border:none;
-    border-radius:14px;
-    color:white;
-    font-weight:600;
-    font-size:15px;
-    cursor:pointer;
-    transition:0.3s;
-}
+        .brand-info {
+            list-style: none;
+            text-align: left;
+            display: inline-flex;
+            flex-direction: column;
+            gap: .75rem;
+        }
 
-.btn-login:hover{
-    transform:translateY(-2px);
-}
+        .brand-info li {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            color: rgba(255,255,255,.7);
+            font-size: .875rem;
+        }
 
-.btn-back{
-    width:100%;
-    padding:14px;
-    border-radius:14px;
-    border:2px solid #d1d5db;
-    text-decoration:none;
-    color:#1a2b4d;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    margin-top:12px;
-    font-weight:600;
-    transition:0.3s;
-}
+        .brand-info li i {
+            width: 32px; height: 32px;
+            border-radius: 8px;
+            background: rgba(255,255,255,.08);
+            display: flex; align-items: center; justify-content: center;
+            color: var(--gold);
+            font-size: .85rem;
+            flex-shrink: 0;
+        }
 
-.btn-back:hover{
-    background:#f3f4f6;
-    border-color:#003366;
-    color:#003366;
-}
+        .panel-footer-text {
+            position: absolute;
+            bottom: 1.5rem;
+            left: 0; right: 0;
+            text-align: center;
+            font-size: .75rem;
+            color: rgba(255,255,255,.3);
+            z-index: 2;
+        }
 
-/* ================= ERROR ================= */
-.error-box{
-    background:#ffe5e5;
-    padding:10px;
-    border-radius:10px;
-    margin-bottom:15px;
-    font-size:14px;
-}
+        /* ── Right panel (form) ── */
+        .panel-right {
+            width: 45%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: var(--light);
+            padding: 3rem 2.5rem;
+        }
 
-/* ================= FOOTER ================= */
-.login-footer{
-    text-align:center;
-    margin-top:18px;
-    font-size:13px;
-    color:#6b7280;
-}
+        .form-box {
+            width: 100%;
+            max-width: 380px;
+        }
 
-/* ================= ANIMATION ================= */
-@keyframes fadeUp{
-    from{
-        opacity:0;
-        transform:translateY(30px);
-    }
-    to{
-        opacity:1;
-        transform:translateY(0);
-    }
-}
+        .form-head {
+            margin-bottom: 2rem;
+        }
 
-/* ================= RESPONSIVE ================= */
-@media(max-width:480px){
-    .login-wrapper{
-        max-width:95%;
-    }
-}
+        .form-head .badge-admin {
+            display: inline-flex;
+            align-items: center;
+            gap: .4rem;
+            background: rgba(0,51,102,.08);
+            color: var(--navy);
+            border: 1px solid rgba(0,51,102,.15);
+            border-radius: 20px;
+            padding: .3rem .9rem;
+            font-size: .75rem;
+            font-weight: 600;
+            letter-spacing: .04em;
+            text-transform: uppercase;
+            margin-bottom: 1rem;
+        }
 
-</style>
+        .form-head h2 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--navy);
+            margin-bottom: .4rem;
+        }
+
+        .form-head p {
+            font-size: .875rem;
+            color: var(--muted);
+        }
+
+        /* inputs */
+        .field-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .field-label {
+            font-size: .82rem;
+            font-weight: 600;
+            color: #334155;
+            margin-bottom: .4rem;
+            display: block;
+        }
+
+        .input-wrap {
+            position: relative;
+        }
+
+        .input-wrap i {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94A3B8;
+            font-size: .9rem;
+            pointer-events: none;
+        }
+
+        .field-input {
+            width: 100%;
+            padding: .75rem 1rem .75rem 2.6rem;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            font-size: .9rem;
+            font-family: 'Inter', sans-serif;
+            color: #1E293B;
+            background: #fff;
+            transition: border-color .25s, box-shadow .25s;
+        }
+
+        .field-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(26,74,138,.1);
+        }
+
+        .toggle-pw {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #94A3B8;
+            cursor: pointer;
+            font-size: .9rem;
+            padding: 4px;
+        }
+
+        .toggle-pw:hover { color: var(--accent); }
+
+        /* error */
+        .error-alert {
+            background: #FEF2F2;
+            border: 1px solid #FECACA;
+            border-radius: 8px;
+            padding: .75rem 1rem;
+            margin-bottom: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: .6rem;
+            font-size: .85rem;
+            color: var(--danger);
+        }
+
+        /* buttons */
+        .btn-masuk {
+            width: 100%;
+            padding: .85rem;
+            background: linear-gradient(135deg, var(--navy) 0%, var(--accent) 100%);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-weight: 600;
+            font-size: .95rem;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            transition: all .3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: .5rem;
+            margin-top: .25rem;
+        }
+
+        .btn-masuk:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,51,102,.25);
+        }
+
+        .btn-masuk:active { transform: translateY(0); }
+
+        .btn-back {
+            width: 100%;
+            padding: .75rem;
+            background: transparent;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            color: #475569;
+            font-weight: 500;
+            font-size: .875rem;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: .5rem;
+            margin-top: .75rem;
+            transition: all .25s ease;
+        }
+
+        .btn-back:hover {
+            background: #F1F5F9;
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        /* divider */
+        .or-divider {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            margin: 1.25rem 0;
+            color: #CBD5E1;
+            font-size: .8rem;
+        }
+
+        .or-divider::before,
+        .or-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        /* bottom note */
+        .form-note {
+            text-align: center;
+            margin-top: 1.75rem;
+            font-size: .78rem;
+            color: #94A3B8;
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 900px) {
+            .panel-left  { display: none; }
+            .panel-right { width: 100%; background: #EEF2F7; }
+            .form-box    { max-width: 420px; background: white; border-radius: 16px; padding: 2rem; box-shadow: 0 8px 30px rgba(0,0,0,.08); }
+        }
+
+        @media (max-width: 480px) {
+            .panel-right { padding: 1.5rem 1rem; }
+            .form-box    { padding: 1.5rem; }
+        }
+
+        /* ── Fade-in animation ── */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .form-box { animation: fadeUp .5s ease; }
+    </style>
 </head>
-
 <body>
 
-<div class="login-wrapper">
+<div class="page">
 
-    <div class="login-card">
+    <!-- ===== LEFT PANEL ===== -->
+    <div class="panel-left">
+        <div class="circle-mid"></div>
 
-        <div class="login-header">
-            <h1 class="login-title">Login Administrator</h1>
-            <p class="login-subtitle">Portal Penerimaan Mahasiswa Baru </p>
+        <div class="panel-brand">
+            <div class="brand-emblem">
+                <i class="fas fa-university"></i>
+            </div>
+
+            <h1 class="brand-name">Universitas Arten</h1>
+            <p class="brand-tagline">Portal Penerimaan Mahasiswa Baru</p>
+            <div class="brand-divider"></div>
+
+            <ul class="brand-info">
+                <li>
+                    <i class="fas fa-shield-alt"></i>
+                    <span>Akses khusus untuk Administrator</span>
+                </li>
+                <li>
+                    <i class="fas fa-users"></i>
+                    <span>Kelola data calon mahasiswa baru</span>
+                </li>
+                <li>
+                    <i class="fas fa-chart-bar"></i>
+                    <span>Pantau hasil seleksi &amp; daftar ulang</span>
+                </li>
+                <li>
+                    <i class="fas fa-file-alt"></i>
+                    <span>Verifikasi berkas &amp; pembayaran</span>
+                </li>
+            </ul>
         </div>
 
-        <div class="login-body">
+        <p class="panel-footer-text">&copy; <?php echo date('Y'); ?> Universitas Arten — Sistem Informasi PMB</p>
+    </div>
+
+    <!-- ===== RIGHT PANEL ===== -->
+    <div class="panel-right">
+        <div class="form-box">
+
+            <div class="form-head">
+                <div class="badge-admin">
+                    <i class="fas fa-user-shield"></i>
+                    Administrator
+                </div>
+                <h2>Selamat Datang</h2>
+                <p>Masuk ke panel admin untuk mengelola penerimaan mahasiswa baru.</p>
+            </div>
 
             <?php if($error): ?>
-                <div class="error-box"><?php echo $error; ?></div>
+            <div class="error-alert">
+                <i class="fas fa-exclamation-circle"></i>
+                <?php echo $error; ?>
+            </div>
             <?php endif; ?>
 
-            <form method="POST">
+            <form method="POST" autocomplete="off">
 
-                <div class="form-group">
-                    <label class="form-label">Username</label>
-                    <input type="text" name="username" class="form-control" placeholder="Masukkan username atau email" required>
+                <div class="field-group">
+                    <label class="field-label" for="username">Username</label>
+                    <div class="input-wrap">
+                        <i class="fas fa-user"></i>
+                        <input type="text" id="username" name="username" class="field-input"
+                               placeholder="Masukkan username admin" required
+                               value="<?php echo isset($_POST['username']) ? htmlspecialchars($_POST['username']) : ''; ?>">
+                    </div>
                 </div>
 
-                <div class="form-group">
-                    <label class="form-label">Password</label>
-                    <input type="password" name="password" class="form-control" placeholder="Masukkan password" required>
+                <div class="field-group">
+                    <label class="field-label" for="password">Password</label>
+                    <div class="input-wrap">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" id="password" name="password" class="field-input"
+                               placeholder="Masukkan password" required>
+                        <button type="button" class="toggle-pw" onclick="togglePassword()" id="toggleBtn" title="Tampilkan/sembunyikan password">
+                            <i class="fas fa-eye" id="pwIcon"></i>
+                        </button>
+                    </div>
                 </div>
 
-                <button class="btn-login">Masuk ke Dashboard</button>
-
-                <a href="../index.php" class="btn-back">Kembali ke Halaman Utama</a>
+                <button type="submit" class="btn-masuk">
+                    <i class="fas fa-sign-in-alt"></i>
+                    Masuk ke Dashboard
+                </button>
 
             </form>
 
-        </div>
+            <div class="or-divider">atau</div>
 
+            <a href="../index.php" class="btn-back">
+                <i class="fas fa-arrow-left"></i>
+                Kembali ke Halaman Utama
+            </a>
+
+            <p class="form-note">
+                Sistem Informasi PMB &mdash; Universitas Arten &copy; <?php echo date('Y'); ?>
+            </p>
+        </div>
     </div>
 
-    
 </div>
+
+<script>
+function togglePassword() {
+    var input = document.getElementById('password');
+    var icon  = document.getElementById('pwIcon');
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.replace('fa-eye', 'fa-eye-slash');
+    } else {
+        input.type = 'password';
+        icon.classList.replace('fa-eye-slash', 'fa-eye');
+    }
+}
+</script>
 
 </body>
 </html>

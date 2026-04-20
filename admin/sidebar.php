@@ -91,7 +91,7 @@
             </div>
             <div class="admin-info">
                 <h5><?php echo $_SESSION['admin_nama'] ?? 'Administrator'; ?></h5>
-                <p>Admin PMB Arten Campus</p>
+                <p>Universitas Arten</p>
             </div>
         </div>
     </div>
@@ -123,10 +123,6 @@
             <span>Daftar Ulang</span>
         </a>
 
-        <a href="pengaturan.php" class="nav-link">
-            <i class="fas fa-cog nav-icon"></i>
-            <span>Pengaturan</span>
-        </a>
 
         <a href="../logout.php" class="nav-link mt-4">
             <i class="fas fa-sign-out-alt nav-icon"></i>
